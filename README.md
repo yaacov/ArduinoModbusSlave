@@ -7,7 +7,7 @@ requests.
  
 ### Competabilty
 
-######This class implements:
+###### This class implements:
 
 * FC1 "Read Coil Status"
 * FC3 "Read Holding Registers"
@@ -17,7 +17,7 @@ requests.
 
 ### Examples
 
-##### handle "Force Single Coil" as arduino digitalWrite
+###### handle "Force Single Coil" as arduino digitalWrite
 ```c
 #include <ModbusSlave.h>
 
