@@ -161,10 +161,11 @@ int Modbus::poll() {
             
             // build valid empty answer
             lengthOut = 3 + (length - 1) / 8 + 1 + 2;
+            bufOut[2] = (length - 1) / 8 + 1;
             
             // clear data out
-            for (int i = 0; i < ((length - 1) / 8 + 1); i++) {
-                bufOut[i + 3] = 0x00;
+            for (int i = 0; i < bufOut[2]; i++) {
+                bufOut[i + 3] = 0x01;
             }
             
             // if we have uset callback
@@ -188,7 +189,7 @@ int Modbus::poll() {
             bufOut[2] = 2 * length;
             
             // clear data out
-            for (int i = 0; i < (2 * length); i+=2) {
+            for (int i = 0; i < bufOut[2]; i+=2) {
                 bufOut[3 + i] = 0x00;
                 bufOut[3 + i + 1] = 0x00;
             }
