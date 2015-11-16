@@ -1,13 +1,26 @@
 # arduino-modbus-slave
-Modbus-Slave library for Arduino
+
+### Modbus-Slave library for Arduino
 
 This modbus slave library uses callbacks to handle modbus requests.
 Handler functions are called on modbus request, and the users can handle the
 requests.
 
+Rgester a handler function:
+```c
+slave.cbVector[CB_READ_REGISTERS] = ReadAnalogIn;
+```
+Implement it:
+```c
+void ReadAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
+    for (int i = 0; i < length; i++)
+        slave.writeRegisterToBuffer(i, analogRead(address + i));
+}
+```
+Thats it, see the full examples for more detail.
+
 - [arduino-modbus-slave](#arduino-modbus-slave)
     - [Competabilty](#competabilty)
-          - [This class implements:](#this-class-implements)
     - [Callback vector](#callback-vector)
           - [Slots](#slots)
           - [Handler function](#handler-function)
