@@ -167,11 +167,6 @@ int Modbus::poll() {
                 bufOut[i + 3] = 0x00;
             }
             
-            // output COIL_ON
-            for (int i = 0; i < length; i++) {
-                writeCoilToBuffer(i, COIL_ON);
-            }
-            
             // if we have uset callback
             if (cbVector[CB_READ_COILS]) {
                 cbVector[CB_READ_COILS](fc, address, status);
@@ -192,9 +187,10 @@ int Modbus::poll() {
             lengthOut = 3 + 2 * length + 2;
             bufOut[2] = 2 * length;
             
-            // output zeros
-            for (int i = 0; i < length; i++) {
-                writeRegisterToBuffer(i, 0x0000);
+            // clear data out
+            for (int i = 0; i < (2 * length); i+=2) {
+                bufOut[3 + i] = 0x00;
+                bufOut[3 + i + 1] = 0x00;
             }
             
             // if we have uset callback
