@@ -4,7 +4,19 @@ Modbus-Slave library for Arduino
 This modbus slave library uses callbacks to handle modbus requests.
 Handler functions are called on modbus request, and the users can handle the
 requests.
- 
+
+- [arduino-modbus-slave](#arduino-modbus-slave)
+    - [Competabilty](#competabilty)
+          - [This class implements:](#this-class-implements)
+    - [Callback vector](#callback-vector)
+          - [Slots](#slots)
+          - [Handler function](#handler-function)
+          - [Function codes](#function-codes)
+          - [Reading and writing to the request buffer](#reading-and-writing-to-the-request-buffer)
+    - [Examples](#examples)
+          - [handle "Force Single Coil" as arduino digitalWrite](#handle-force-single-coil-as-arduino-digitalwrite)
+          - [handle "Read Input Registers" as arduino analogRead](#handle-read-input-registers-as-arduino-analogread)
+
 ### Competabilty
 
 ###### This class implements:
@@ -16,9 +28,9 @@ requests.
 * FC5 "Force Single Coil"
 * FC16 "Preset Multiple Registers"
 
-### Callback vector cbVector
+### Callback vector
 
-Users register handler function into the callback vector.
+Users register handler functions into the callback vector.
 
 ###### Slots
 
