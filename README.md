@@ -18,7 +18,8 @@ requests.
           - [handle "Force Single Coil" as arduino digitalWrite](#handle-force-single-coil-as-arduino-digitalwrite)
           - [handle "Read Input Registers" as arduino analogRead](#handle-read-input-registers-as-arduino-analogread)
 
-###### Modbus-Slave is fun and easy to use
+
+### Modbus-Slave is fun and easy to use
 Rgester a handler function:
 ```c
 slave.cbVector[CB_READ_REGISTERS] = ReadAnalogIn;
@@ -30,7 +31,7 @@ void ReadAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
         slave.writeRegisterToBuffer(i, analogRead(address + i));
 }
 ```
-ANd thats it, your sketch is modbus enabled. (see the full examples for more detail)
+And thats it, your sketch is modbus enabled. (see the full examples for more detail)
 
 ### Competabilty
 
