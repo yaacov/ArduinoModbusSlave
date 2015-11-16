@@ -165,7 +165,7 @@ int Modbus::poll() {
             
             // clear data out
             for (int i = 0; i < bufOut[2]; i++) {
-                bufOut[i + 3] = 0x01;
+                bufOut[i + 3] = 0x00;
             }
             
             // if we have uset callback
