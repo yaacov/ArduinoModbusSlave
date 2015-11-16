@@ -1,7 +1,7 @@
 # arduino-modbus-slave
 Modbus-Slave library for Arduino
 
-This modbus slabe library uses callbacks to handle modbus requests.
+This modbus slave library uses callbacks to handle modbus requests.
 Handler functions are called on modbus request, and the users can handle the
 requests.
  
@@ -17,6 +17,7 @@ requests.
 
 ### Examples
 
+##### handle "Force Single Coil" as arduino digitalWrite
 ```c
 #include <ModbusSlave.h>
 
