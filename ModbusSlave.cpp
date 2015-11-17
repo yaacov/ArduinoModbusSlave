@@ -170,10 +170,10 @@ int Modbus::poll() {
             
             // if we have uset callback
             if (cbVector[CB_READ_COILS]) {
-                cbVector[CB_READ_COILS](fc, address, status);
+                cbVector[CB_READ_COILS](fc, address, length);
             }
             break;
-        case FC_READ_REGISTERS: // read holding registers (analog out state)
+        case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
         case FC_READ_INPUT_REGISTERS: // read input registers (analog in)
             address = word(bufIn[2], bufIn[3]); // first register
             length = word(bufIn[4], bufIn[5]); // number of registers to read
@@ -300,8 +300,8 @@ uint16_t Modbus::readRegisterFromBuffer(int offset) {
  * @param state the coil state to write into buffer
  */
 void Modbus::writeCoilToBuffer(int offset, uint16_t state) {
-    int address = 3 + (offset - 1) / 8;
-    int bit = (offset - 1) % 8;
+    int address = 3 + offset / 8;
+    int bit = offset % 8;
     
     if (state == COIL_OFF) {
         bitClear(bufOut[address], bit);

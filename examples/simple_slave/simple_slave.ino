@@ -10,15 +10,16 @@
 Modbus slave(1, 8); // slave id = 0, rs485 control-pin = 8
 
 void setup() {
+    /* set some pins for output
+     */
+    pinMode(11, OUTPUT);
+    pinMode(12, OUTPUT);
     pinMode(13, OUTPUT);
     
     /* register handler functions
      * into the modbus slave callback vector.
      */
-    slave.cbVector[CB_READ_COILS] = NULL;
     slave.cbVector[CB_WRITE_COIL] = writeDigitlOut;
-    slave.cbVector[CB_READ_REGISTERS] = ReadAnalogIn;
-    slave.cbVector[CB_WRITE_MULTIPLE_REGISTERS] = NULL;
     
     // start slave at baud 9600 on Serial
     slave.begin( 9600 ); // baud = 9600
@@ -35,25 +36,14 @@ void loop() {
 }
 
 /**
- * Handel Read Input Registers (FC=04)
+ * Handel Force Single Coil (FC=05)
  *
- * write back the values from analog in pins (input registers).
+ * set digital output pins (coils) on and off
  *
  * handler functions must return void and take:
  *      uint8_t  fc - function code
  *      uint16_t address - first register/coil address
  *      uint16_t length/status - length of data / coil status
- */
-void ReadAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
-    for (int i = 0; i < length; i++) {
-      slave.writeRegisterToBuffer(i, analogRead(address + i));
-    }
-}
-
-/**
- * Handel Force Single Coil (FC=05)
- *
- * set digital output pins (coils) on and off
  */
 void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
     if (status == COIL_ON) {

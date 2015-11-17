@@ -87,7 +87,9 @@ handler functions must return void and take:
 Modbus slave(1, 8); // slave id = 0, rs485 control-pin = 8
 
 void setup() {
-    // register handler functions
+    // register one handler functions
+    // if callback is assigned to user function the default handler
+    // is called. Default handlers return a valid empty replay.
     slave.cbVector[CB_WRITE_COIL] = writeDigitlOut;
     
     // start slave at baud 9600 on Serial
