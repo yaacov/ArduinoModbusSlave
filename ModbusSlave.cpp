@@ -20,6 +20,8 @@
 #include "Print.h"
 #include "ModbusSlave.h"
 
+#define  MAX_REGISTERS 64
+
 /**
  * Init the modbus object
  *

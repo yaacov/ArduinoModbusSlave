@@ -16,8 +16,7 @@
 
 #include <inttypes.h>
 
-#define  MAX_BUFFER  64
-#define  MAX_REGISTERS  64
+#define  MAX_BUFFER 64
 
 /**
  * Modbus function codes

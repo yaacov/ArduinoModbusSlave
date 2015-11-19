@@ -24,6 +24,7 @@ cbVector				KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+MAX_BUFFER					LITERAL1
 FC_READ_COILS				LITERAL1
 FC_READ_DISCRETE_INPUT		LITERAL1
 FC_READ_HOLDING_REGISTERS	LITERAL1
