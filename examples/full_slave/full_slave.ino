@@ -13,7 +13,7 @@ uint16_t programMem[MAX_PROG_REG];
 /**
  *  Modbus object declaration
  */
-Modbus slave(1, 8); // slave id = 0, rs485 control-pin = 8
+Modbus slave(1, 8); // slave id = 1, rs485 control-pin = 8
 
 void setup() {
     /* set some pins for output
@@ -46,7 +46,6 @@ void loop() {
 
 /**
  * Handel Read Input Status (FC=02/01)
- *
  * write back the values from digital in pins (input status).
  *
  * handler functions must return void and take:
@@ -62,7 +61,6 @@ void readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
         }
     }
     
-    // read digital input
     if (fc == FC_READ_DISCRETE_INPUT) {
         // read digital input
         for (int i = 0; i < length; i++) {
@@ -73,7 +71,6 @@ void readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
 
 /**
  * Handel Read Input Registers (FC=04/03)
- *
  * write back the values from analog in pins (input registers).
  *
  * handler functions must return void and take:
@@ -99,7 +96,6 @@ void readAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
 
 /**
  * Handel Force Single Coil (FC=05)
- *
  * set digital output pins (coils) on and off
  */
 void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
@@ -112,7 +108,6 @@ void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
 
 /**
  * Handel Write Registers (FC=16)
- *
  * write data into program.
  *
  * handler functions must return void and take:

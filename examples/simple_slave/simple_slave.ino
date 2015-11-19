@@ -7,7 +7,7 @@
 /**
  *  Modbus object declaration
  */
-Modbus slave(1, 8); // slave id = 0, rs485 control-pin = 8
+Modbus slave(1, 8); // slave id = 1, rs485 control-pin = 8
 
 void setup() {
     /* set some pins for output
@@ -37,7 +37,6 @@ void loop() {
 
 /**
  * Handel Force Single Coil (FC=05)
- *
  * set digital output pins (coils) on and off
  *
  * handler functions must return void and take:
