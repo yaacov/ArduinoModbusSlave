@@ -15,6 +15,7 @@
  */
 
 #include <inttypes.h>
+#include <string.h>
 #include "Arduino.h"
 #include "Print.h"
 #include "ModbusSlave.h"
@@ -164,9 +165,7 @@ int Modbus::poll() {
             bufOut[2] = (length - 1) / 8 + 1;
             
             // clear data out
-            for (int i = 0; i < bufOut[2]; i++) {
-                bufOut[i + 3] = 0x00;
-            }
+            memset(bufOut + 3, 0, bufOut[2]);
             
             // if we have uset callback
             if (cbVector[CB_READ_COILS]) {
@@ -189,10 +188,7 @@ int Modbus::poll() {
             bufOut[2] = 2 * length;
             
             // clear data out
-            for (int i = 0; i < bufOut[2]; i+=2) {
-                bufOut[3 + i] = 0x00;
-                bufOut[3 + i + 1] = 0x00;
-            }
+            memset(bufOut + 3, 0, bufOut[2]);
             
             // if we have uset callback
             if (cbVector[CB_READ_REGISTERS]) {
@@ -208,10 +204,7 @@ int Modbus::poll() {
             
             // build valid empty answer
             lengthOut = 8;
-            bufOut[2] = bufIn[2];
-            bufOut[3] = bufIn[3];
-            bufOut[4] = bufIn[4];
-            bufOut[5] = bufIn[5];
+            memcpy(bufOut + 2, bufIn, 4);
             
             // if we have uset callback
             if (cbVector[CB_WRITE_COIL]) {
@@ -230,10 +223,7 @@ int Modbus::poll() {
             
             // build valid empty answer
             lengthOut = 8;
-            bufOut[2] = bufIn[2];
-            bufOut[3] = bufIn[3];
-            bufOut[4] = bufIn[4];
-            bufOut[5] = bufIn[5];
+            memcpy(bufOut + 2, bufIn, 4);
             
             // if we have uset callback
             if (cbVector[CB_WRITE_MULTIPLE_REGISTERS]) {

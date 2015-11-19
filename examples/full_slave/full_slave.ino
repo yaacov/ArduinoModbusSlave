@@ -5,6 +5,12 @@
 #include <ModbusSlave.h>
 
 /**
+ * Simulate the Holding Registers
+ */
+#define MAX_PROG_REG 10
+uint16_t programMem[MAX_PROG_REG];
+
+/**
  *  Modbus object declaration
  */
 Modbus slave(1, 8); // slave id = 0, rs485 control-pin = 8
@@ -50,8 +56,10 @@ void loop() {
  */
 void readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
     if (fc == FC_READ_COILS) {
-        // read coils
-        
+        // read digital input
+        for (int i = 0; i < length; i++) {
+            slave.writeCoilToBuffer(i, digitalRead(address + i) ? COIL_ON : COIL_OFF);
+        }
     }
     
     // read digital input
@@ -76,13 +84,15 @@ void readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
 void readAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
     if (fc == FC_READ_HOLDING_REGISTERS) {
         // read program memory
-        
+        for (int i = 0; i < length, (address + i) < MAX_PROG_REG; i++) {
+            slave.writeRegisterToBuffer(i, programMem[address + i]);
+        }
     }
     
     if (fc == FC_READ_INPUT_REGISTERS) {
         // read analog input
         for (int i = 0; i < length; i++) {
-          slave.writeRegisterToBuffer(i, analogRead(address + i));
+            slave.writeRegisterToBuffer(i, analogRead(address + i));
         }
     }
 }
@@ -112,5 +122,9 @@ void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
  */
 void writeProgram(uint8_t fc, uint16_t address, uint16_t length) {
     // write to program memory
+    // read program memory
+    for (int i = 0; i < length, (address + i) < MAX_PROG_REG; i++) {
+        programMem[address + i] = slave.readRegisterFromBuffer(i);
+    }
 }
 
