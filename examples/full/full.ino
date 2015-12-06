@@ -27,7 +27,7 @@ void setup() {
      */
     slave.cbVector[CB_READ_COILS] = readDigitalIn;
     slave.cbVector[CB_WRITE_COIL] = writeDigitlOut;
-    slave.cbVector[CB_READ_REGISTERS] = readAnalogIn;
+    slave.cbVector[CB_READ_REGISTERS] = readMemory;
     slave.cbVector[CB_WRITE_MULTIPLE_REGISTERS] = writeMemory;
     
     // start slave at baud 9600 on Serial
@@ -42,23 +42,6 @@ void loop() {
      * call the user handler function.
      */ 
     slave.poll();
-}
-
-/**
- * Handel Read Coils (FC=01)
- * write back the values from digital in pins (input status).
- *
- * handler functions must return void and take:
- *      uint8_t  fc - function code
- *      uint16_t address - first register/coil address
- *      uint16_t length/status - length of data / coil status
- */
-void readCoils(uint16_t address, uint16_t length) {
-    // read coils state
-    for (int i = 0; i < length; i++) {
-        // write one boolean (1 bit) to the response buffer
-        slave.writeCoilToBuffer(i, digitalRead(address + i));
-    }
 }
 
 /**
@@ -86,16 +69,30 @@ void readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
 }
 
 /**
- * Handel Read Holding Registers (FC=03)
- * write back the values from analog in pins (input registers).
- *
- * handler functions must return void and take:
- *      uint8_t  fc - function code
- *      uint16_t address - first register/coil address
- *      uint16_t length/status - length of data / coil status
+ * Handel Read Coils (FC=01)
+ * write back the values from digital in pins (input status).
  */
-void readMemory(uint16_t address, uint16_t length) {
+void readCoils(uint16_t address, uint16_t length) {
+    // read coils state
+    for (int i = 0; i < length; i++) {
+        // write one boolean (1 bit) to the response buffer
+        slave.writeCoilToBuffer(i, digitalRead(address + i));
+    }
+}
+
+/**
+ * Handel Read Holding Registers (FC=03)
+ * write back the values from eeprom (holding registers).
+ */
+void readMemory(uint8_t fc, uint16_t address, uint16_t length) {
     uint16_t value;
+    
+    // check the function code
+    if (fc == FC_READ_INPUT_REGISTERS) {
+        // read eeprom memory
+        readAnalogIn(address, length);
+        return;
+    }
     
     // read program memory
     for (int i = 0; i < length; i++) {
@@ -109,20 +106,8 @@ void readMemory(uint16_t address, uint16_t length) {
 /**
  * Handel Read Input Registers (FC=04)
  * write back the values from analog in pins (input registers).
- *
- * handler functions must return void and take:
- *      uint8_t  fc - function code
- *      uint16_t address - first register/coil address
- *      uint16_t length/status - length of data / coil status
  */
-void readAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
-    // check the function code
-    if (fc == FC_READ_HOLDING_REGISTERS) {
-        // read eeprom memory
-        readMemory(address, length);
-        return;
-    }
-    
+void readAnalogIn(uint16_t address, uint16_t length) {
     // read analog input
     for (int i = 0; i < length; i++) {
         // write uint16_t value to the response buffer
@@ -135,17 +120,13 @@ void readAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
  * set digital output pins (coils) on and off
  */
 void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
+    // set digital pin state
     digitalWrite(address, status);
 }
 
 /**
  * Handel Write Holding Registers (FC=16)
  * write data into program.
- *
- * handler functions must return void and take:
- *      uint8_t  fc - function code
- *      uint16_t address - first register/coil address
- *      uint16_t length/status - length of data / coil status
  */
 void writeMemory(uint8_t fc, uint16_t address, uint16_t length) {
     uint16_t value;
