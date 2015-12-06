@@ -5,20 +5,6 @@
 This modbus slave library uses callbacks to handle modbus requests.
 Handler functions are called on modbus request, and the users can implement them in their sketch.
 
-----
-
-- [Competabilty](#competabilty)
-- [Callback vector](#callback-vector)
-      - [Slots](#slots)
-      - [Handler function](#handler-function)
-      - [Function codes](#function-codes)
-      - [Reading and writing to the request buffer](#reading-and-writing-to-the-request-buffer)
-- [Examples](#examples)
-      - [handle "Force Single Coil" as arduino digitalWrite](#handle-force-single-coil-as-arduino-digitalwrite)
-      - [handle "Read Input Registers" as arduino analogRead](#handle-read-input-registers-as-arduino-analogread)
-
-----
-
 ### Modbus-Slave is fun and easy to use
 Register a handler function:
 ```c
@@ -32,6 +18,20 @@ void ReadAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
 }
 ```
 And thats it, your sketch is modbus enabled. (see the full examples for more detail)
+
+----
+
+- [Competabilty](#competabilty)
+- [Callback vector](#callback-vector)
+      - [Slots](#slots)
+      - [Handler function](#handler-function)
+      - [Function codes](#function-codes)
+      - [Reading and writing to the request buffer](#reading-and-writing-to-the-request-buffer)
+- [Examples](#examples)
+      - [handle "Force Single Coil" as arduino digitalWrite](#handle-force-single-coil-as-arduino-digitalwrite)
+      - [handle "Read Input Registers" as arduino analogRead](#handle-read-input-registers-as-arduino-analogread)
+
+----
 
 ### Competabilty
 
@@ -85,6 +85,7 @@ handler functions must return void and take:
 
 ### Examples
 
+----
 ###### handle "Force Single Coil" as arduino digitalWrite
 ```c
 #include <ModbusSlave.h>
@@ -118,6 +119,7 @@ void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
 
 ```
 
+----
 ###### handle "Read Input Registers" as arduino analogRead
 ```c
 #include <ModbusSlave.h>
