@@ -104,9 +104,9 @@ void loop() {
 
 // Handel Force Single Coil (FC=05)
 void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
-    if (status == COIL_ON) {
+    if (status == HIGH) {
         digitalWrite(address, HIGH);
-    } else if (status == COIL_OFF) {
+    } else {
         digitalWrite(address, LOW);
     }
 }

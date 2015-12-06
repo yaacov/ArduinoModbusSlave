@@ -57,14 +57,14 @@ void readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
     if (fc == FC_READ_COILS) {
         // read digital input
         for (int i = 0; i < length; i++) {
-            slave.writeCoilToBuffer(i, digitalRead(address + i) ? COIL_ON : COIL_OFF);
+            slave.writeCoilToBuffer(i, digitalRead(address + i));
         }
     }
     
     if (fc == FC_READ_DISCRETE_INPUT) {
         // read digital input
         for (int i = 0; i < length; i++) {
-            slave.writeCoilToBuffer(i, digitalRead(address + i) ? COIL_ON : COIL_OFF);
+            slave.writeCoilToBuffer(i, digitalRead(address + i));
         }
     }
 }
@@ -99,9 +99,9 @@ void readAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
  * set digital output pins (coils) on and off
  */
 void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
-    if (status == COIL_ON) {
+    if (status == HIGH) {
         digitalWrite(address, HIGH);
-    } else if (status == COIL_OFF) {
+    } else {
         digitalWrite(address, LOW);
     }
 }

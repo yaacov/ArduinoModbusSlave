@@ -206,11 +206,11 @@ int Modbus::poll() {
             
             // build valid empty answer
             lengthOut = 8;
-            memcpy(bufOut + 2, bufIn, 4);
+            memcpy(bufOut + 2, bufIn + 2, 4);
             
             // if we have uset callback
             if (cbVector[CB_WRITE_COIL]) {
-                cbVector[CB_WRITE_COIL](fc, address, status);
+                cbVector[CB_WRITE_COIL](fc, address, status == COIL_ON);
             }
             break;
         case FC_WRITE_MULTIPLE_REGISTERS: // write holding registers (analog out)
@@ -225,7 +225,7 @@ int Modbus::poll() {
             
             // build valid empty answer
             lengthOut = 8;
-            memcpy(bufOut + 2, bufIn, 4);
+            memcpy(bufOut + 2, bufIn + 2, 4);
             
             // if we have uset callback
             if (cbVector[CB_WRITE_MULTIPLE_REGISTERS]) {
@@ -289,16 +289,16 @@ uint16_t Modbus::readRegisterFromBuffer(int offset) {
  * Write coil state to output buffer.
  *
  * @param offset the coil offset from first coil in this buffer
- * @param state the coil state to write into buffer
+ * @param state the coil state to write into buffer (true / false)
  */
 void Modbus::writeCoilToBuffer(int offset, uint16_t state) {
     int address = 3 + offset / 8;
     int bit = offset % 8;
     
-    if (state == COIL_OFF) {
-        bitClear(bufOut[address], bit);
-    } else if (state == COIL_ON) {
+    if (state == HIGH) {
         bitSet(bufOut[address], bit);
+    } else if (state) {
+        bitClear(bufOut[address], bit);
     }
 }
 
