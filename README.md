@@ -5,21 +5,22 @@
 This modbus slave library uses callbacks to handle modbus requests.
 Handler functions are called on modbus request, and the users can implement them in their sketch.
 
+----
 
-- [arduino-modbus-slave](#arduino-modbus-slave)
-    - [Competabilty](#competabilty)
-    - [Callback vector](#callback-vector)
-          - [Slots](#slots)
-          - [Handler function](#handler-function)
-          - [Function codes](#function-codes)
-          - [Reading and writing to the request buffer](#reading-and-writing-to-the-request-buffer)
-    - [Examples](#examples)
-          - [handle "Force Single Coil" as arduino digitalWrite](#handle-force-single-coil-as-arduino-digitalwrite)
-          - [handle "Read Input Registers" as arduino analogRead](#handle-read-input-registers-as-arduino-analogread)
+- [Competabilty](#competabilty)
+- [Callback vector](#callback-vector)
+      - [Slots](#slots)
+      - [Handler function](#handler-function)
+      - [Function codes](#function-codes)
+      - [Reading and writing to the request buffer](#reading-and-writing-to-the-request-buffer)
+- [Examples](#examples)
+      - [handle "Force Single Coil" as arduino digitalWrite](#handle-force-single-coil-as-arduino-digitalwrite)
+      - [handle "Read Input Registers" as arduino analogRead](#handle-read-input-registers-as-arduino-analogread)
 
+----
 
 ### Modbus-Slave is fun and easy to use
-Rgester a handler function:
+Register a handler function:
 ```c
 slave.cbVector[CB_READ_REGISTERS] = ReadAnalogIn;
 ```
@@ -72,11 +73,15 @@ handler functions must return void and take:
 * FC_WRITE_COIL = 5
 * FC_WRITE_MULTIPLE_REGISTERS = 16
 
-###### Reading and writing to the request buffer
+----
+
+###### Reading and writing to the request / response buffer
 
 * uint16_t readRegisterFromBuffer(int offset) : read one register value from the request buffer.
 * void writeCoilToBuffer(int offset, uint16_t state) : write one coil state into the answer buffer.
 * void writeRegisterToBuffer(int offset, uint16_t value) : write one register value into the answer buffer.
+
+----
 
 ### Examples
 
