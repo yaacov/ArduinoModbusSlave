@@ -1,6 +1,6 @@
 # arduino-modbus-slave
 
-### Modbus-Slave library for Arduino
+##### Modbus-Slave library for Arduino
 
 This modbus slave library uses callbacks to handle modbus requests.
 Handler functions are called on modbus request, and the users can implement them in their sketch.
