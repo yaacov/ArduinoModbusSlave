@@ -15,6 +15,7 @@ poll						KEYWORD2
 readRegisterFromBuffer		KEYWORD2
 writeCoilToBuffer			KEYWORD2
 writeRegisterToBuffer		KEYWORD2
+writeStringToBuffer			KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)

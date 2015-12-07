@@ -16,7 +16,7 @@
 
 #include <inttypes.h>
 
-#define  MAX_BUFFER 64
+#define MAX_BUFFER 64
 
 /**
  * Modbus function codes
@@ -55,6 +55,7 @@ public:
     uint16_t readRegisterFromBuffer(int offset);
     void writeCoilToBuffer(int offset, uint16_t state);
     void writeRegisterToBuffer(int offset, uint16_t value);
+    void writeStringToBuffer(int offset, uint8_t *str, uint8_t length);
     
     CallBackFunc cbVector[4];
 private:
