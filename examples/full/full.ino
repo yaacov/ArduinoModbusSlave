@@ -1,6 +1,31 @@
-/**
- *  Modbus slave example
- */
+/*
+    Modbus slave example.
+
+    Control and Read Arduino I/Os using Modbus serial connection.
+    
+    This sketch show how to use the callback vector for reading and
+    controleing Arduino I/Os.
+    
+    * Control digital pins mode using holding registers 0 .. 13.
+    * Controls digital output pins as modbus coils.
+    * Reads digital inputs state as discreet inputs.
+    * Reads analog inputs as input registers.
+    * Write and Read EEPROM as holding registers.
+
+    The circuit: ( see: ./extras/ModbusSetch.pdf )
+    * An Arduino.
+    * 2 x LEDs, with 220 ohm resistors in series.
+    * A switch connected to a digital input pin.
+    * A potentiometer connected to an analog input pin.
+    * A RS485 module (Optional) connected to RX/TX and a digital control pin.
+
+    Created 8 12 2015
+    By Yaacov Zamir
+
+    https://github.com/yaacov/ArduinoModbusSlave
+
+*/
+
 #include <EEPROM.h>
 #include <ModbusSlave.h>
 
@@ -10,17 +35,37 @@
 #define CTRL_PIN 8
 #define BAUDRATE 9600
 
+#define PIN_MODE_INPUT 0
+#define PIN_MODE_OUTPUT 1
+
 /**
  *  Modbus object declaration.
  */
 Modbus slave(SLAVE_ID, CTRL_PIN);
 
 void setup() {
-    /* set some pins for output.
+    var pinIndex;
+    var eepromValue;
+    
+    /* set pins for mode.
      */
-    pinMode(11, OUTPUT);
-    pinMode(12, OUTPUT);
-    pinMode(13, OUTPUT);
+    for (pinIndex = 3; pinIndex < 14; pinIndex++) {
+        // get one 16bit register from eeprom
+        eepromValue = EEPROM.get(pinIndex * 2);
+        
+        // use the register value to set pin mode.
+        switch (eepromValue) {
+            case PIN_MODE_INPUT:
+                pinMode(pinIndex, INPUT);
+                break;
+            case PIN_MODE_OUTPUT:
+                pinMode(pinIndex, OUTPUT);
+                break;
+        }
+    }
+    
+    // RS485 control pin must be output
+    pinMode(CTRL_PIN, OUTPUT);
     
     /* register handler functions.
      * into the modbus slave callback vector.
@@ -130,6 +175,7 @@ void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
  */
 void writeMemory(uint8_t fc, uint16_t address, uint16_t length) {
     uint16_t value;
+    uint16_t pinIndex;
     
     // write to eeprom.
     for (int i = 0; i < length; i++) {
@@ -137,6 +183,24 @@ void writeMemory(uint8_t fc, uint16_t address, uint16_t length) {
         value = slave.readRegisterFromBuffer(i);
         
         EEPROM.put((address + i) * 2, value);
+        
+        /* if this register sets digital pins mode, 
+         * set the digital pins mode.
+         */
+        if ((address + i) < 14) {
+            // get pin index.
+            pinIndex = address + i;
+            
+            // use the register value to set pin mode.
+            switch (value) {
+                case PIN_MODE_INPUT:
+                    pinMode(pinIndex, INPUT);
+                    break;
+                case PIN_MODE_OUTPUT:
+                    pinMode(pinIndex, OUTPUT);
+                    break;
+            }
+        }
     }
 }
 

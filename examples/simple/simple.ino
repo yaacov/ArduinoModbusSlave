@@ -1,10 +1,32 @@
-/**
- *  Modbus slave example
- */
+/*
+    Modbus slave simple example
+
+    Control and Read Arduino I/Os using Modbus serial connection.
+    
+    This sketch show how to use the callback vector for reading and
+    controleing Arduino I/Os.
+    
+    * Controls digital output pins as modbus coils.
+    * Reads digital inputs state as discreet inputs.
+    * Reads analog inputs as input registers.
+
+    The circuit: ( see: ./extras/ModbusSetch.pdf )
+    * An Arduino.
+    * 2 x LEDs, with 220 ohm resistors in series.
+    * A switch connected to a digital input pin.
+    * A potentiometer connected to an analog input pin.
+    * A RS485 module (Optional) connected to RX/TX and a digital control pin.
+
+    Created 8 12 2015
+    By Yaacov Zamir
+
+    https://github.com/yaacov/ArduinoModbusSlave
+
+*/
 
 #include <ModbusSlave.h>
 
-/* slave id = 1, control-pin = 8, baud = 9600
+/* slave id = 1, rs485 control-pin = 8, baud = 9600
  */
 #define SLAVE_ID 1
 #define CTRL_PIN 8
@@ -18,6 +40,7 @@ Modbus slave(SLAVE_ID, CTRL_PIN);
 void setup() {
     /* set some pins for output
      */
+    pinMode(10, INPUT);
     pinMode(11, OUTPUT);
     pinMode(12, OUTPUT);
     pinMode(13, OUTPUT);
