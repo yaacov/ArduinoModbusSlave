@@ -1,0 +1,12 @@
+{
+    "name": "ArduinoModbusSlave",
+    "keywords": "modbus, serial, protocol",
+    "description": "Send and recieve data and instructions using modbus rtu protocol",
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/yaacov/ArduinoModbusSlave.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "atmelavr"
+}
