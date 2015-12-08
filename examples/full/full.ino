@@ -189,7 +189,7 @@ void writeMemory(uint8_t fc, uint16_t address, uint16_t length) {
         /* if this register sets digital pins mode, 
          * set the digital pins mode.
          */
-        if (registerIndex < 14) {
+        if (registerIndex > 2 && registerIndex < 14 && registerIndex != CTRL_PIN) {
             // use the register value to set pin mode.
             switch (value) {
                 case PIN_MODE_INPUT:
