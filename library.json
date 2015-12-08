@@ -1,5 +1,5 @@
 {
-    "name": "ArduinoModbusSlave",
+    "name": "ModbusSlave",
     "keywords": "modbus, serial, protocol",
     "description": "A Modbus slave library thar uses callbacks to handle modbus requests.",
     "repository":
