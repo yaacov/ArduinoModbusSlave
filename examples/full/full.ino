@@ -44,14 +44,14 @@
 Modbus slave(SLAVE_ID, CTRL_PIN);
 
 void setup() {
-    var pinIndex;
-    var eepromValue;
+    uint16_t pinIndex;
+    uint16_t eepromValue;
     
     /* set pins for mode.
      */
     for (pinIndex = 3; pinIndex < 14; pinIndex++) {
         // get one 16bit register from eeprom
-        eepromValue = EEPROM.get(pinIndex * 2);
+        EEPROM.get(pinIndex * 2, eepromValue);
         
         // use the register value to set pin mode.
         switch (eepromValue) {
@@ -175,29 +175,28 @@ void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
  */
 void writeMemory(uint8_t fc, uint16_t address, uint16_t length) {
     uint16_t value;
-    uint16_t pinIndex;
+    uint16_t registerIndex;
     
     // write to eeprom.
     for (int i = 0; i < length; i++) {
+        registerIndex = address + i;
+        
         // get uint16_t value from the request buffer.
         value = slave.readRegisterFromBuffer(i);
         
-        EEPROM.put((address + i) * 2, value);
+        EEPROM.put(registerIndex * 2, value);
         
         /* if this register sets digital pins mode, 
          * set the digital pins mode.
          */
-        if ((address + i) < 14) {
-            // get pin index.
-            pinIndex = address + i;
-            
+        if (registerIndex < 14) {
             // use the register value to set pin mode.
             switch (value) {
                 case PIN_MODE_INPUT:
-                    pinMode(pinIndex, INPUT);
+                    pinMode(registerIndex, INPUT);
                     break;
                 case PIN_MODE_OUTPUT:
-                    pinMode(pinIndex, OUTPUT);
+                    pinMode(registerIndex, OUTPUT);
                     break;
             }
         }
