@@ -21,6 +21,7 @@ And thats it, your sketch is modbus enabled. (see the full examples for more det
 
 ----
 
+- [Install](#install)
 - [Competabilty](#competabilty)
 - [Callback vector](#callback-vector)
       - [Slots](#slots)
@@ -32,6 +33,12 @@ And thats it, your sketch is modbus enabled. (see the full examples for more det
       - [handle "Read Input Registers" as arduino analogRead](#handle-read-input-registers-as-arduino-analogread)
 
 ----
+
+### Install
+
+Download the zip package, and install it into your Arduino IDE.
+
+See the Arduino tutorial about installing 3rd party libraries: https://www.arduino.cc/en/Guide/Libraries#toc4
 
 ### Competabilty
 
