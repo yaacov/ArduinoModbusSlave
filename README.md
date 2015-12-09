@@ -1,4 +1,4 @@
-# ArduinoModbusSlave
+# ModbusSlave
 
 ##### ModbusSlave library for Arduino
 
