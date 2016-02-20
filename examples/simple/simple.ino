@@ -2,10 +2,10 @@
     Modbus slave simple example
 
     Control and Read Arduino I/Os using Modbus serial connection.
-    
+
     This sketch show how to use the callback vector for reading and
     controleing Arduino I/Os.
-    
+
     * Controls digital output pins as modbus coils.
     * Reads digital inputs state as discreet inputs.
     * Reads analog inputs as input registers.
@@ -44,14 +44,14 @@ void setup() {
     pinMode(11, OUTPUT);
     pinMode(12, OUTPUT);
     pinMode(13, OUTPUT);
-    
+
     /* register handler functions
      * into the modbus slave callback vector.
      */
     slave.cbVector[CB_WRITE_COIL] = writeDigitlOut;
     slave.cbVector[CB_READ_COILS] = readDigitalIn;
     slave.cbVector[CB_READ_REGISTERS] = readAnalogIn;
-    
+
     // start slave at baud 9600 on Serial
     slave.begin( BAUDRATE );
 }
@@ -62,7 +62,7 @@ void loop() {
      * on a request, handle the request.
      * if the request has a user handler function registered in cbVector
      * call the user handler function.
-     */ 
+     */
     slave.poll();
 }
 
