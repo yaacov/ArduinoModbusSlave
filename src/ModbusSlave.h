@@ -59,7 +59,6 @@ public:
 
     CallBackFunc cbVector[4];
 private:
-    void setT35(int boud);
     uint32_t timeout;
     uint32_t last_receive_time;
     uint16_t last_receive_len;
