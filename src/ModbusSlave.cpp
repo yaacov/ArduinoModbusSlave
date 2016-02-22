@@ -39,7 +39,7 @@ Modbus::Modbus(uint8_t _unitID, int _ctrlPin) {
  *
  * @param boud the serial port boud rate.
  */
-void Modbus::begin(int boud) {
+void Modbus::begin(unsigned long boud) {
     // set control pin
     if (ctrlPin) {
         pinMode(ctrlPin, OUTPUT);
@@ -47,10 +47,15 @@ void Modbus::begin(int boud) {
 
     // open port and set the timeout for 3.5 chars.
     Serial.begin(boud);
-    Serial.flush();
+    Serial.setTimeout(0);
 
-    // set the T35 interframe timout to 5 milliseconds.
-    timeout = 5;
+    // set the T35 interframe timeout
+    if (boud > 19200) {
+        timeout = 1750;
+    }
+    else {
+        timeout = 35000000 / boud; // 1T * 3.5 = T3.5
+    }
 
     // init last received values
     last_receive_len = 0;
@@ -87,20 +92,6 @@ uint16_t Modbus::calcCRC(uint8_t *buf, int length) {
 }
 
 /**
- * Read all bytes available in serial port.
- */
-int serialRead(uint8_t *buffer, uint8_t len) {
-    uint8_t size = 0;
-
-    while (Serial.available() && size < len) {
-        buffer[size] = Serial.read();
-        size++;
-    }
-
-    return size;
-}
-
-/**
  * wait for end of frame, parse request and answer it.
  */
 int Modbus::poll() {
@@ -123,18 +114,18 @@ int Modbus::poll() {
         // if we have new data, update last received time and length.
         if (available_len != last_receive_len) {
             last_receive_len = available_len;
-            last_receive_time = millis();
+            last_receive_time = micros();
 
             return 0;
         }
 
-        // if no new data, wait for T35 milliseconds.
-        if (millis() < (last_receive_time + timeout)) {
+        // if no new data, wait for T35 microseconds.
+        if (micros() < (last_receive_time + timeout)) {
             return 0;
         }
 
         // we waited for the inter-frame timeout, read the frame.
-        lengthIn = serialRead(bufIn, MAX_BUFFER);
+        lengthIn = Serial.readBytes(bufIn, MAX_BUFFER);
         last_receive_len = 0;
         last_receive_time = 0;
     } else {
@@ -267,18 +258,16 @@ int Modbus::poll() {
         // send buffer
         Serial.write(bufOut, lengthOut);
 
-        // wait until serial port register (UCSRnA)
-        // transfer complete bit (TXCn) is on
-        // and then set rs485 control pin to read
+        // wait for the transmission of outgoing data
+        // to complete and then set rs485 control pin to read
         // [ on SoftwareSerial use delay ? ]
-        while (!(UCSR0A & (1 << TXC0)));
+        Serial.flush();
         digitalWrite(ctrlPin, LOW);
     } else {
         // just send the buffer.
         Serial.write(bufOut, lengthOut);
     }
 
-    Serial.flush();
     return lengthOut;
 }
 

@@ -50,7 +50,7 @@ typedef void(*CallBackFunc)(uint8_t, uint16_t, uint16_t);
 class Modbus {
 public:
     Modbus(uint8_t unitID, int ctrlPin);
-    void begin(int boud);
+    void begin(unsigned long boud);
     int poll();
     uint16_t readRegisterFromBuffer(int offset);
     void writeCoilToBuffer(int offset, uint16_t state);
