@@ -5,7 +5,8 @@
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
-Modbus	KEYWORD1
+ModbusSlave					KEYWORD1
+Modbus						KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)

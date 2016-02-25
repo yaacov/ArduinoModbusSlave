@@ -14,10 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF  THIS SOFTWARE.
  */
 
-#include <inttypes.h>
 #include <string.h>
-#include "Arduino.h"
-#include "Print.h"
 #include "ModbusSlave.h"
 
 /**
@@ -26,7 +23,20 @@
  * @param unitID the modbus slave id.
  * @param ctrlPin the digital out pin for RS485 read/write control.
  */
-Modbus::Modbus(uint8_t _unitID, int _ctrlPin) {
+Modbus::Modbus(uint8_t _unitID, int _ctrlPin)
+:Modbus(Serial, _unitID, _ctrlPin)
+{}
+
+/**
+ * Init the modbus object.
+ *
+ * @param serial the serial port used for the modbus communication
+ * @param unitID the modbus slave id.
+ * @param ctrlPin the digital out pin for RS485 read/write control.
+ */
+Modbus::Modbus(Stream &_serial, uint8_t _unitID, int _ctrlPin)
+:serial(_serial)
+{
     // set modbus slave unit id
     unitID = _unitID;
 
@@ -45,9 +55,8 @@ void Modbus::begin(unsigned long boud) {
         pinMode(ctrlPin, OUTPUT);
     }
 
-    // open port and set the timeout for 3.5 chars.
-    Serial.begin(boud);
-    Serial.setTimeout(0);
+    // set the timeout for 3.5 chars.
+    serial.setTimeout(0);
 
     // set the T35 interframe timeout
     if (boud > 19200) {
@@ -109,7 +118,7 @@ int Modbus::poll() {
      */
 
     // check if we have data in buffer.
-    available_len = Serial.available();
+    available_len = serial.available();
     if (available_len != 0) {
         // if we have new data, update last received time and length.
         if (available_len != last_receive_len) {
@@ -125,7 +134,7 @@ int Modbus::poll() {
         }
 
         // we waited for the inter-frame timeout, read the frame.
-        lengthIn = Serial.readBytes(bufIn, MAX_BUFFER);
+        lengthIn = serial.readBytes(bufIn, MAX_BUFFER);
         last_receive_len = 0;
         last_receive_time = 0;
     } else {
@@ -256,16 +265,16 @@ int Modbus::poll() {
         digitalWrite(ctrlPin, HIGH);
 
         // send buffer
-        Serial.write(bufOut, lengthOut);
+        serial.write(bufOut, lengthOut);
 
         // wait for the transmission of outgoing data
         // to complete and then set rs485 control pin to read
         // [ on SoftwareSerial use delay ? ]
-        Serial.flush();
+        serial.flush();
         digitalWrite(ctrlPin, LOW);
     } else {
         // just send the buffer.
-        Serial.write(bufOut, lengthOut);
+        serial.write(bufOut, lengthOut);
     }
 
     return lengthOut;

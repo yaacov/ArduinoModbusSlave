@@ -52,7 +52,8 @@ void setup() {
     slave.cbVector[CB_READ_COILS] = readDigitalIn;
     slave.cbVector[CB_READ_REGISTERS] = readAnalogIn;
 
-    // start slave at baud 9600 on Serial
+    // set Serial and slave at baud 9600.
+    Serial.begin( BAUDRATE );
     slave.begin( BAUDRATE );
 }
 

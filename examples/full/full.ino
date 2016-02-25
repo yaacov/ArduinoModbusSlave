@@ -75,8 +75,9 @@ void setup() {
     slave.cbVector[CB_READ_REGISTERS] = readMemory;
     slave.cbVector[CB_WRITE_MULTIPLE_REGISTERS] = writeMemory;
     
-    // start slave at baud 9600 on Serial.
-    slave.begin( BAUDRATE ); // baud = 9600
+    // set Serial and slave at baud 9600.
+    Serial.begin( BAUDRATE );
+    slave.begin( BAUDRATE );
 }
 
 void loop() {
