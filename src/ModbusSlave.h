@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF  THIS SOFTWARE.
  */
 
-#include <inttypes.h>
+#include <Arduino.h>
 
 #define MAX_BUFFER 64
 
@@ -50,6 +50,7 @@ typedef void(*CallBackFunc)(uint8_t, uint16_t, uint16_t);
 class Modbus {
 public:
     Modbus(uint8_t unitID, int ctrlPin);
+    Modbus(Stream &serial, uint8_t unitID, int ctrlPin);
     void begin(unsigned long boud);
     int poll();
     uint16_t readRegisterFromBuffer(int offset);
@@ -59,6 +60,7 @@ public:
 
     CallBackFunc cbVector[4];
 private:
+    Stream &serial;
     uint32_t timeout;
     uint32_t last_receive_time;
     uint16_t last_receive_len;
