@@ -52,7 +52,7 @@ Download the zip package, and install it into your Arduino IDE. See the Arduino 
 ### Serial port
 
 * The default serial port is Serial, but any class that inhirets from Stream can be used.
-To set a different Serial class, implicitly set the Stream in the Modbus class constuctor.
+To set a different Serial class, explicitly set the Stream in the Modbus class constuctor.
 
 ### Callback vector
 
