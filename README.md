@@ -49,6 +49,12 @@ Download the zip package, and install it into your Arduino IDE. See the Arduino 
 * FC5 "Force Single Coil"
 * FC16 "Preset Multiple Registers"
 
+### Serial port
+
+* The default serial port is Serial, but any class that inhirets from Stream can be used.
+To set a different Serial class, implicitly set the Stream in the Modbus calss constuctor.
+* Because the Modbus class expects a Stream object and not a Serial one, the serial port must me set using it's begin function.
+
 ### Callback vector
 
 Users register handler functions into the callback vector.
