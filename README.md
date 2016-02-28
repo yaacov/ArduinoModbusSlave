@@ -95,7 +95,7 @@ handler functions must return void and take:
 ```c
 #include <ModbusSlave.h>
 
-// implicitly set setream to use the Serial serialport
+// implicitly set stream to use the Serial serialport
 Modbus slave(1, 8); // [stream = Serial,] slave id = 1, rs485 control-pin = 8
 
 void setup() {
