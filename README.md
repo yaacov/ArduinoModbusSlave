@@ -95,7 +95,8 @@ handler functions must return void and take:
 ```c
 #include <ModbusSlave.h>
 
-Modbus slave(1, 8); // slave id = 0, rs485 control-pin = 8
+// explicitly set setream to use the Serial serialport
+Modbus slave(Serial, 1, 8); // stream = Serial, slave id = 1, rs485 control-pin = 8
 
 void setup() {
     // register one handler functions
@@ -105,6 +106,7 @@ void setup() {
     slave.cbVector[CB_WRITE_COIL] = writeDigitlOut;
     
     // start slave at baud 9600 on Serial
+    Serial.begin( 9600 ); // baud = 9600
     slave.begin( 9600 ); // baud = 9600
 }
 
@@ -129,13 +131,15 @@ void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
 ```c
 #include <ModbusSlave.h>
 
-Modbus slave(1, 8); // slave id = 0, rs485 control-pin = 8
+// implicitly set setream to use the Serial serialport
+Modbus slave(1, 8); // [stream = Serial,] slave id = 1, rs485 control-pin = 8
 
 void setup() {
     // register handler functions
     slave.cbVector[CB_READ_REGISTERS] = ReadAnalogIn;
     
     // start slave at baud 9600 on Serial
+    Serial.begin( 9600 ); // baud = 9600
     slave.begin( 9600 ); // baud = 9600
 }
 
