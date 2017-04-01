@@ -304,7 +304,7 @@ void Modbus::writeCoilToBuffer(int offset, uint16_t state) {
 
     if (state == HIGH) {
         bitSet(bufOut[address], bit);
-    } else if (state) {
+    } else {
         bitClear(bufOut[address], bit);
     }
 }
@@ -337,4 +337,3 @@ void Modbus::writeStringToBuffer(int offset, uint8_t *str, uint8_t length) {
 
     memcpy(bufOut + address, str, length);
 }
-
