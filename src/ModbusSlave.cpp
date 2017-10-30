@@ -166,7 +166,7 @@ int Modbus::poll() {
      */
     switch (fc) {
         case FC_READ_COILS: // read coils (digital out state)
-        case FC_READ_DISCRETE_INPUT:
+        case FC_READ_DISCRETE_INPUT: // read input state (digital in)
         case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
         case FC_READ_INPUT_REGISTERS: // read input registers (analog in)
             // sanity check.
