@@ -147,9 +147,17 @@ int Modbus::poll() {
     // check minimum length.
     if (lengthIn < 8) return 0;
 
-    // this removes the null character that sometimes
-    // is get from the SoftwareSerial on the "nano"
-    if(lengthIn > 8 && bufIn[lengthIn-1] == 0) lengthIn--;
+    /**
+     * this removes the null character that sometimes
+     * is get from the SoftwareSerial on the "nano"
+     * posible message length are:
+     *   FC1..6 : length = 8  (with extra null 9)
+     *   FC15   : length = 11 (with extra null 12)
+     *   FC16   : length = 13 (with extra null 14)
+     */
+    if((lengthIn == 9 || lengthIn == 12 || lengthIn == 14) && bufIn[lengthIn-1] == 0) {
+      lengthIn--;
+    }
 
     // check unit-id
     if (bufIn[0] != unitID) return 0;
@@ -233,7 +241,7 @@ int Modbus::poll() {
             if (length > MAX_BUFFER) return 0;
 
             // check command length
-            if (lengthIn != (7 + length * 2 + 2)) return 0;
+            if ((uint16_t)lengthIn != (7 + length * 2 + 2)) return 0;
 
             // build valid empty answer.
             lengthOut = 8;
