@@ -147,6 +147,10 @@ int Modbus::poll() {
     // check minimum length.
     if (lengthIn < 8) return 0;
 
+    // this removes the null character that sometimes
+    // is get from the SoftwareSerial on the "nano"
+    if(lengthIn > 8 && bufIn[lengthIn-1] == 0) lengthIn--;
+
     // check unit-id
     if (bufIn[0] != unitID) return 0;
 
