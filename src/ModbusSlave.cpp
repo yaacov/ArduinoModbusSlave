@@ -141,6 +141,9 @@ int Modbus::poll() {
         return 0;
     }
 
+    // check unit-id
+    if (bufIn[0] != unitID) return 0;
+
     /**
      * Validate buffer.
      */
@@ -148,19 +151,51 @@ int Modbus::poll() {
     if (lengthIn < 8) return 0;
 
     /**
-     * this removes the null character that sometimes
-     * is get from the SoftwareSerial on the "nano"
-     * posible message length are:
-     *   FC1..6 : length = 8  (with extra null 9)
-     *   FC15   : length = 11 (with extra null 12)
-     *   FC16   : length = 13 (with extra null 14)
+     * Get the Function code.
      */
-    if((lengthIn == 9 || lengthIn == 12 || lengthIn == 14) && bufIn[lengthIn-1] == 0) {
-      lengthIn--;
-    }
+    fc = bufIn[1];
 
-    // check unit-id
-    if (bufIn[0] != unitID) return 0;
+    /**
+     * Get message address and length/status.
+     */
+    address = word(bufIn[2], bufIn[3]); // first register.
+    length = word(bufIn[4], bufIn[5]);  // number of registers to act apone.
+
+    /**
+     * this removes any trailing noise after message
+     */
+    switch (fc) {
+      case FC_READ_COILS: // read coils (digital out state)
+      case FC_READ_DISCRETE_INPUT:
+      case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
+      case FC_READ_INPUT_REGISTERS: // read input registers (analog in)
+          // sanity check.
+          if (length > MAX_BUFFER) return 0;
+
+          // ignore tailing nulls.
+          lengthIn = 8;
+
+          break;
+      case FC_WRITE_COIL:
+          status = length; // 0xff00 - on, 0x0000 - off
+
+          // ignore tailing nulls.
+          lengthIn = 8;
+
+          break;
+      case FC_WRITE_MULTIPLE_REGISTERS:
+          // sanity check.
+          if (length > MAX_BUFFER) return 0;
+
+          // ignore tailing nulls.
+          lengthIn = (int)(7 + length * 2 + 2);
+
+          break;
+      default:
+          // unknown command
+          return 0;
+          break;
+    }
 
     // check crc.
     crc = word(bufIn[lengthIn - 1], bufIn[lengthIn - 2]);
@@ -169,19 +204,9 @@ int Modbus::poll() {
     /**
      * Parse command
      */
-    fc = bufIn[1];
     switch (fc) {
         case FC_READ_COILS: // read coils (digital out state)
         case FC_READ_DISCRETE_INPUT: // read input state (digital in)
-            address = word(bufIn[2], bufIn[3]); // coil to set.
-            length = word(bufIn[4], bufIn[5]);
-
-            // sanity check.
-            if (length > MAX_BUFFER) return 0;
-
-            // check command length.
-            if (lengthIn != 8) return 0;
-
             // build valid empty answer.
             lengthOut = 3 + (length - 1) / 8 + 1 + 2;
             bufOut[2] = (length - 1) / 8 + 1;
@@ -196,15 +221,6 @@ int Modbus::poll() {
             break;
         case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
         case FC_READ_INPUT_REGISTERS: // read input registers (analog in)
-            address = word(bufIn[2], bufIn[3]); // first register.
-            length = word(bufIn[4], bufIn[5]); // number of registers to read.
-
-            // sanity check.
-            if (length > MAX_BUFFER) return 0;
-
-            // check command length.
-            if (lengthIn != 8) return 0;
-
             // build valid empty answer.
             lengthOut = 3 + 2 * length + 2;
             bufOut[2] = 2 * length;
@@ -218,12 +234,6 @@ int Modbus::poll() {
             }
             break;
         case FC_WRITE_COIL: // write one coil (digital out)
-            address = word(bufIn[2], bufIn[3]); // coil to set
-            status = word(bufIn[4], bufIn[5]); // 0xff00 - on, 0x0000 - off
-
-            // check command length.
-            if (lengthIn != 8) return 0;
-
             // build valid empty answer.
             lengthOut = 8;
             memcpy(bufOut + 2, bufIn + 2, 4);
@@ -234,15 +244,6 @@ int Modbus::poll() {
             }
             break;
         case FC_WRITE_MULTIPLE_REGISTERS: // write holding registers (analog out)
-            address = word(bufIn[2], bufIn[3]); // first register
-            length = word(bufIn[4], bufIn[5]); // number of registers to set
-
-            // sanity check.
-            if (length > MAX_BUFFER) return 0;
-
-            // check command length
-            if ((uint16_t)lengthIn != (7 + length * 2 + 2)) return 0;
-
             // build valid empty answer.
             lengthOut = 8;
             memcpy(bufOut + 2, bufIn + 2, 4);
@@ -251,10 +252,6 @@ int Modbus::poll() {
             if (cbVector[CB_WRITE_MULTIPLE_REGISTERS]) {
                 cbVector[CB_WRITE_MULTIPLE_REGISTERS](fc, address, length);
             }
-            break;
-        default:
-            // unknown command
-            return 0;
             break;
     }
 
