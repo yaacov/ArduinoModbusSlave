@@ -159,42 +159,42 @@ int Modbus::poll() {
      * Get message address and length/status.
      */
     address = word(bufIn[2], bufIn[3]); // first register.
-    length = word(bufIn[4], bufIn[5]);  // number of registers to act apone.
+    length = word(bufIn[4], bufIn[5]);  // number of registers to act upone or status.
 
     /**
-     * this removes any trailing noise after message
+     * Output length sanity check, and remove trailing noise from message.
      */
     switch (fc) {
-      case FC_READ_COILS: // read coils (digital out state)
-      case FC_READ_DISCRETE_INPUT:
-      case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
-      case FC_READ_INPUT_REGISTERS: // read input registers (analog in)
-          // sanity check.
-          if (length > MAX_BUFFER) return 0;
+        case FC_READ_COILS: // read coils (digital out state)
+        case FC_READ_DISCRETE_INPUT:
+        case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
+        case FC_READ_INPUT_REGISTERS: // read input registers (analog in)
+            // sanity check.
+            if (length > MAX_BUFFER) return 0;
 
-          // ignore tailing nulls.
-          lengthIn = 8;
+            // ignore tailing nulls.
+            lengthIn = 8;
 
-          break;
-      case FC_WRITE_COIL:
-          status = length; // 0xff00 - on, 0x0000 - off
+            break;
+        case FC_WRITE_COIL:
+            status = length; // 0xff00 - on, 0x0000 - off
 
-          // ignore tailing nulls.
-          lengthIn = 8;
+            // ignore tailing nulls.
+            lengthIn = 8;
 
-          break;
-      case FC_WRITE_MULTIPLE_REGISTERS:
-          // sanity check.
-          if (length > MAX_BUFFER) return 0;
+            break;
+        case FC_WRITE_MULTIPLE_REGISTERS:
+            // sanity check.
+            if (length > MAX_BUFFER) return 0;
 
-          // ignore tailing nulls.
-          lengthIn = (int)(7 + length * 2 + 2);
+            // ignore tailing nulls.
+            lengthIn = (int)(7 + length * 2 + 2);
 
-          break;
-      default:
-          // unknown command
-          return 0;
-          break;
+            break;
+        default:
+            // unknown command
+            return 0;
+            break;
     }
 
     // check crc.
