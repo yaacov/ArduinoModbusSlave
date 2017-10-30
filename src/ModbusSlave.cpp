@@ -187,6 +187,9 @@ int Modbus::poll() {
             // sanity check.
             if (length > MAX_BUFFER) return 0;
 
+            // check buffer in size.
+            if (lengthIn < (int)(7 + length * 2 + 2)) return 0;
+
             // ignore tailing nulls.
             lengthIn = (int)(7 + length * 2 + 2);
 
