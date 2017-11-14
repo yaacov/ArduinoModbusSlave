@@ -71,8 +71,10 @@ void loop() {
  * Handel Force Single Coil (FC=05)
  * set digital output pins (coils) on and off
  */
-void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
+uint8_t writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
     digitalWrite(address, status);
+    
+    return STATUS_OK;
 }
 
 /**
@@ -84,21 +86,25 @@ void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
  *      uint16_t address - first register/coil address
  *      uint16_t length/status - length of data / coil status
  */
-void readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
+uint8_t readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
     // read digital input
     for (int i = 0; i < length; i++) {
         slave.writeCoilToBuffer(i, digitalRead(address + i));
     }
+
+    return STATUS_OK;
 }
 
 /**
  * Handel Read Input Registers (FC=04/03)
  * write back the values from analog in pins (input registers).
  */
-void readAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
+uint8_t readAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
     // read analog input
     for (int i = 0; i < length; i++) {
         slave.writeRegisterToBuffer(i, analogRead(address + i));
     }
+
+    return STATUS_OK;
 }
 

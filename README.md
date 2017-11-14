@@ -121,12 +121,13 @@ void loop() {
 }
 
 // Handel Force Single Coil (FC=05)
-void writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
+uint8_t writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
     if (status == HIGH) {
         digitalWrite(address, HIGH);
     } else {
         digitalWrite(address, LOW);
     }
+    return STATUS_OK;
 }
 
 ```
@@ -154,7 +155,7 @@ void loop() {
 }
 
 // Handel Read Input Registers (FC=04)
-void ReadAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
+uint8_t ReadAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
     // we only answer to function code 4
     if (fc != FC_READ_INPUT_REGISTERS) return;
     
@@ -162,6 +163,7 @@ void ReadAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
     for (int i = 0; i < length; i++) {
       slave.writeRegisterToBuffer(i, analogRead(address + i));
     }
+    return STATUS_OK;
 }
 
 ```
