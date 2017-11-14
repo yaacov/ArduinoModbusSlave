@@ -69,10 +69,25 @@ The callback vector has 4 slots for request handlers:
 
 ###### Handler function
 
-handler functions must return void and take:
+Handler functions must return unit8_t and take:
 * uint8_t  fc - request function code
 * uint16_t address - first register / first coil address
 * uint16_t length / status - length of data / coil status
+
+Return codes:
+
+*  STATUS_OK = 0,
+*  STATUS_ILLEGAL_FUNCTION,
+*  STATUS_ILLEGAL_DATA_ADDRESS,
+*  STATUS_ILLEGAL_DATA_VALUE,
+*  STATUS_SLAVE_DEVICE_FAILURE,
+*  STATUS_ACKNOWLEDGE,
+*  STATUS_SLAVE_DEVICE_BUSY,
+*  STATUS_NEGATIVE_ACKNOWLEDGE,
+*  STATUS_MEMORY_PARITY_ERROR,
+*  STATUS_GATEWAY_PATH_UNAVAILABLE,
+*  STATUS_GATEWAY_TARGET_DEVICE_FAILED_TO_RESPOND
+
 
 ###### Function codes
 
