@@ -380,14 +380,16 @@ void Modbus::writeRegisterToBuffer(int offset, uint16_t value) {
  * @param offset the register offset from first register in this buffer.
  * @param str the string to write into buffer.
  * @param length the string length.
+ * @return STATUS_OK in case of success, STATUS_ILLEGAL_DATA_ADDRESS
+ *      if data doesn't fit in buffer
  */
-void Modbus::writeStringToBuffer(int offset, uint8_t *str, uint8_t length) {
+uint8_t Modbus::writeStringToBuffer(int offset, uint8_t *str, uint8_t length) {
     int address = 3 + offset * 2;
 
     // check string length.
-    // TODO retun code informing calling function about result
-    // so that callback can return eg STATUS_ILLEGAL_DATA_ADDRESS
-    if ((address + length) >= MAX_BUFFER) return;
+    // MAX_BUFFER-2 because we ned two bytes for crc. 
+    if ((address + length) >= MAX_BUFFER-2) return STATUS_ILLEGAL_DATA_ADDRESS;
 
     memcpy(bufOut + address, str, length);
+    return STATUS_OK;
 }
