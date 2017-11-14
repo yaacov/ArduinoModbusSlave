@@ -112,6 +112,8 @@ int Modbus::poll() {
     uint16_t status;
     uint16_t available_len;
     uint8_t fc;
+    uint8_t cb_status;
+    uint8_t error = STATUS_OK;
 
     /**
      * Read one data frame:
@@ -170,7 +172,16 @@ int Modbus::poll() {
         case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
         case FC_READ_INPUT_REGISTERS: // read input registers (analog in)
             // sanity check.
-            if (length > MAX_BUFFER) return 0;
+            if (length > MAX_BUFFER) {
+                error = STATUS_ILLEGAL_DATA_ADDRESS;
+                // as long as I am not using gotos at all 
+                // in case of protocol handling they are usefull for 
+                // cleaning up when it comes to cleaning up
+                // when something goes wrong while processing
+                // instead og goto same can be implemented as nested
+                // if statements
+                goto respond;
+            }
 
             // ignore tailing nulls.
             lengthIn = 8;
@@ -178,14 +189,16 @@ int Modbus::poll() {
             break;
         case FC_WRITE_COIL:
             status = length; // 0xff00 - on, 0x0000 - off
-
             // ignore tailing nulls.
             lengthIn = 8;
 
             break;
         case FC_WRITE_MULTIPLE_REGISTERS:
             // sanity check.
-            if (length > MAX_BUFFER) return 0;
+            if (length > MAX_BUFFER) {
+                error = STATUS_ILLEGAL_DATA_ADDRESS;
+                goto respond;
+            }
 
             // check buffer in size.
             if (lengthIn < (int)(7 + length * 2 + 2)) return 0;
@@ -196,17 +209,23 @@ int Modbus::poll() {
             break;
         default:
             // unknown command
-            return 0;
-            break;
+            // TODO respond with exeption 01 (illegal function)
+            error = STATUS_ILLEGAL_FUNCTION;
+            goto respond;
     }
 
     // check crc.
     crc = word(bufIn[lengthIn - 1], bufIn[lengthIn - 2]);
-    if (calcCRC(bufIn, lengthIn - 2) != crc) return 0;
+    if (calcCRC(bufIn, lengthIn - 2) != crc) {
+        error = STATUS_NEGATIVE_ACKNOWLEDGE;
+        goto respond;
+    }
 
     /**
      * Parse command
      */
+    cb_status = STATUS_OK;
+
     switch (fc) {
         case FC_READ_COILS: // read coils (digital out state)
         case FC_READ_DISCRETE_INPUT: // read input state (digital in)
@@ -219,7 +238,9 @@ int Modbus::poll() {
 
             // if we have uset callback.
             if (cbVector[CB_READ_COILS]) {
-                cbVector[CB_READ_COILS](fc, address, length);
+                cb_status = cbVector[CB_READ_COILS](fc, address, length);
+            } else {
+                cb_status = STATUS_ILLEGAL_FUNCTION;
             }
             break;
         case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
@@ -233,7 +254,9 @@ int Modbus::poll() {
 
             // if we have uset callback.
             if (cbVector[CB_READ_REGISTERS]) {
-                cbVector[CB_READ_REGISTERS](fc, address, length);
+                cb_status = cbVector[CB_READ_REGISTERS](fc, address, length);
+            } else {
+                cb_status = STATUS_ILLEGAL_FUNCTION;
             }
             break;
         case FC_WRITE_COIL: // write one coil (digital out)
@@ -243,8 +266,11 @@ int Modbus::poll() {
 
             // if we have uset callback.
             if (cbVector[CB_WRITE_COIL]) {
-                cbVector[CB_WRITE_COIL](fc, address, status == COIL_ON);
+                cb_status = cbVector[CB_WRITE_COIL](fc, address, status == COIL_ON);
+            } else {
+                cb_status = STATUS_ILLEGAL_FUNCTION;
             }
+
             break;
         case FC_WRITE_MULTIPLE_REGISTERS: // write holding registers (analog out)
             // build valid empty answer.
@@ -253,16 +279,30 @@ int Modbus::poll() {
 
             // if we have uset callback
             if (cbVector[CB_WRITE_MULTIPLE_REGISTERS]) {
-                cbVector[CB_WRITE_MULTIPLE_REGISTERS](fc, address, length);
+                cb_status = cbVector[CB_WRITE_MULTIPLE_REGISTERS](fc, address, length);
+            } else {
+                cb_status = STATUS_ILLEGAL_FUNCTION;
             }
+
             break;
     }
-
+    
+    respond:
     /**
      * Build answer
      */
     bufOut[0] = unitID;
     bufOut[1] = fc;
+    
+    if (error != STATUS_OK) { // error code should have higher priotity over callback
+        bufOut[1] |= 0x80;
+        bufOut[2] = error;
+        lengthOut = 5;
+    } else if (cb_status != STATUS_OK) {
+        bufOut[1] |= 0x80;
+        bufOut[2] = cb_status;
+        lengthOut = 5;
+    }
 
     // add crc
     crc = calcCRC(bufOut, lengthOut - 2);
@@ -345,6 +385,8 @@ void Modbus::writeStringToBuffer(int offset, uint8_t *str, uint8_t length) {
     int address = 3 + offset * 2;
 
     // check string length.
+    // TODO retun code informing calling function about result
+    // so that callback can return eg STATUS_ILLEGAL_DATA_ADDRESS
     if ((address + length) >= MAX_BUFFER) return;
 
     memcpy(bufOut + address, str, length);
