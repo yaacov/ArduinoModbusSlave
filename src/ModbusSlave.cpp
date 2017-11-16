@@ -217,8 +217,9 @@ int Modbus::poll() {
     // check crc.
     crc = word(bufIn[lengthIn - 1], bufIn[lengthIn - 2]);
     if (calcCRC(bufIn, lengthIn - 2) != crc) {
-        error = STATUS_NEGATIVE_ACKNOWLEDGE;
-        goto respond;
+        // standard modbus doesn't respond in case of
+        // crc error
+        return 0;
     }
 
     /**
