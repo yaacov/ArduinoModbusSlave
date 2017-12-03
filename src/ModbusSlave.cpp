@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2015, Yaacov Zamir <kobi.zamir@gmail.com>
+ * Copyright (c) 2017, Andrew Voznytsa <andrew.voznytsa@gmail.com>, FC_WRITE_REGISTER and FC_WRITE_MULTIPLE_COILS support
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,6 +15,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF  THIS SOFTWARE.
  */
 
+#include <assert.h>
 #include <string.h>
 #include "ModbusSlave.h"
 
@@ -109,7 +111,6 @@ int Modbus::poll() {
     uint16_t crc;
     uint16_t address;
     uint16_t length;
-    uint16_t status;
     uint16_t available_len;
     uint8_t fc;
     uint8_t cb_status;
@@ -188,9 +189,33 @@ int Modbus::poll() {
 
             break;
         case FC_WRITE_COIL:
-            status = length; // 0xff00 - on, 0x0000 - off
             // ignore tailing nulls.
             lengthIn = 8;
+
+            break;
+        case FC_WRITE_REGISTER:
+            // ignore tailing nulls.
+            lengthIn = 8;
+
+            break;
+        case FC_WRITE_MULTIPLE_COILS:
+            // sanity check.
+            if (length > MAX_BUFFER) {
+                error = STATUS_ILLEGAL_DATA_ADDRESS;
+                // as long as I am not using gotos at all 
+                // in case of protocol handling they are usefull for 
+                // cleaning up when it comes to cleaning up
+                // when something goes wrong while processing
+                // instead og goto same can be implemented as nested
+                // if statements
+                goto respond;
+            }
+
+            // check buffer in size.
+            if (lengthIn < (int)(7 + (length + 7) / 8 + 2)) return 0;
+
+            // ignore tailing nulls.
+            lengthIn = (int)(7 + (length + 7) / 8 + 2);
 
             break;
         case FC_WRITE_MULTIPLE_REGISTERS:
@@ -266,8 +291,34 @@ int Modbus::poll() {
             memcpy(bufOut + 2, bufIn + 2, 4);
 
             // if we have uset callback.
-            if (cbVector[CB_WRITE_COIL]) {
-                cb_status = cbVector[CB_WRITE_COIL](fc, address, status == COIL_ON);
+            if (cbVector[CB_WRITE_COILS]) {
+                cb_status = cbVector[CB_WRITE_COILS](fc, address, 1);
+            } else {
+                cb_status = STATUS_ILLEGAL_FUNCTION;
+            }
+
+            break;
+        case FC_WRITE_REGISTER:
+            // build valid empty answer.
+            lengthOut = 8;
+            memcpy(bufOut + 2, bufIn + 2, 4);
+
+            // if we have uset callback
+            if (cbVector[CB_WRITE_REGISTERS]) {
+                cb_status = cbVector[CB_WRITE_REGISTERS](fc, address, 1);
+            } else {
+                cb_status = STATUS_ILLEGAL_FUNCTION;
+            }
+
+            break;
+        case FC_WRITE_MULTIPLE_COILS: // write coils (digital out)
+            // build valid empty answer.
+            lengthOut = 8;
+            memcpy(bufOut + 2, bufIn + 2, 4);
+
+            // if we have uset callback.
+            if (cbVector[CB_WRITE_COILS]) {
+                cb_status = cbVector[CB_WRITE_COILS](fc, address, length);
             } else {
                 cb_status = STATUS_ILLEGAL_FUNCTION;
             }
@@ -279,8 +330,8 @@ int Modbus::poll() {
             memcpy(bufOut + 2, bufIn + 2, 4);
 
             // if we have uset callback
-            if (cbVector[CB_WRITE_MULTIPLE_REGISTERS]) {
-                cb_status = cbVector[CB_WRITE_MULTIPLE_REGISTERS](fc, address, length);
+            if (cbVector[CB_WRITE_REGISTERS]) {
+                cb_status = cbVector[CB_WRITE_REGISTERS](fc, address, length);
             } else {
                 cb_status = STATUS_ILLEGAL_FUNCTION;
             }
@@ -334,12 +385,39 @@ int Modbus::poll() {
 }
 
 /**
+ * Read coil state from input buffer.
+ *
+ * @param offset the coil offset from first coil in this buffer.
+ * @return the coil state from buffer (true / false)
+ */
+int Modbus::readCoilFromBuffer(int offset) {
+    if (bufIn[1] == FC_WRITE_COIL) {
+       assert(offset == 0);
+       return word(bufIn[4], bufIn[5]) == COIL_ON;
+    }
+
+    assert(bufIn[1] == FC_WRITE_MULTIPLE_COILS);
+
+    int address = 7 + offset / 8;
+    int bit = offset % 8;
+
+    return bitRead(bufIn[address], bit);
+}
+
+/**
  * Read register value from input buffer.
  *
  * @param offset the register offset from first register in this buffer.
- * @return the reguster value from buffer.
+ * @return the register value from buffer.
  */
 uint16_t Modbus::readRegisterFromBuffer(int offset) {
+    if (bufIn[1] == FC_WRITE_REGISTER) {
+       assert(offset == 0);
+       return word(bufIn[4], bufIn[5]);
+    }
+
+    assert(bufIn[1] == FC_WRITE_MULTIPLE_REGISTERS);
+
     int address = 7 + offset * 2;
 
     return word(bufIn[address], bufIn[address + 1]);
@@ -351,7 +429,7 @@ uint16_t Modbus::readRegisterFromBuffer(int offset) {
  * @param offset the coil offset from first coil in this buffer.
  * @param state the coil state to write into buffer (true / false)
  */
-void Modbus::writeCoilToBuffer(int offset, uint16_t state) {
+void Modbus::writeCoilToBuffer(int offset, int state) {
     int address = 3 + offset / 8;
     int bit = offset % 8;
 
