@@ -47,6 +47,8 @@ Download the zip package, and install it into your Arduino IDE. See the Arduino 
 * FC3 "Read Holding Registers"
 * FC4 "Read Input Registers"
 * FC5 "Force Single Coil"
+* FC6 "Preset Single Register"
+* FC15 "Force Multiple Coils"
 * FC16 "Preset Multiple Registers"
 
 ### Serial port
@@ -63,16 +65,16 @@ Users register handler functions into the callback vector.
 The callback vector has 4 slots for request handlers:
 
 * slave.cbVector[CB_READ_COILS] - called on FC1 and FC2
-* slave.cbVector[CB_WRITE_COIL] - called on FC5
+* slave.cbVector[CB_WRITE_COILS] - called on FC5 and FC15
 * slave.cbVector[CB_READ_REGISTERS] - called on FC3 and FC4
-* slave.cbVector[CB_WRITE_MULTIPLE_REGISTERS] - called on FC16
+* slave.cbVector[CB_WRITE_REGISTERS] - called on FC6 and FC16
 
 ###### Handler function
 
 Handler functions must return unit8_t and take:
 * uint8_t  fc - request function code
 * uint16_t address - first register / first coil address
-* uint16_t length / status - length of data / coil status
+* uint16_t length - length of data
 
 Return codes:
 
@@ -96,14 +98,17 @@ Return codes:
 * FC_READ_REGISTERS = 3
 * FC_READ_INPUT_REGISTERS = 4
 * FC_WRITE_COIL = 5
+* FC_WRITE_REGISTER = 6
+* FC_WRITE_MULTIPLE_COILS = 15
 * FC_WRITE_MULTIPLE_REGISTERS = 16
 
 ----
 
 ###### Reading and writing to the request / response buffer
 
+* int readCoilFromBuffer(int offset) : read one coil value from the request buffer.
 * uint16_t readRegisterFromBuffer(int offset) : read one register value from the request buffer.
-* void writeCoilToBuffer(int offset, uint16_t state) : write one coil state into the answer buffer.
+* void writeCoilToBuffer(int offset, int state) : write one coil state into the answer buffer.
 * void writeRegisterToBuffer(int offset, uint16_t value) : write one register value into the answer buffer.
 
 ----
@@ -123,7 +128,7 @@ void setup() {
     // if a callback handler is not assigned to a modbus command 
     // the default handler is called. 
     // default handlers return a valid but empty replay.
-    slave.cbVector[CB_WRITE_COIL] = writeDigitlOut;
+    slave.cbVector[CB_WRITE_COILS] = writeDigitlOut;
     
     // start slave at baud 9600 on Serial
     Serial.begin( 9600 ); // baud = 9600
@@ -136,8 +141,8 @@ void loop() {
 }
 
 // Handel Force Single Coil (FC=05)
-uint8_t writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
-    if (status == HIGH) {
+uint8_t writeDigitlOut(uint8_t fc, uint16_t address, uint16_t length) {
+    if (slave.readCoilFromBuffer(0) == HIGH) {
         digitalWrite(address, HIGH);
     } else {
         digitalWrite(address, LOW);

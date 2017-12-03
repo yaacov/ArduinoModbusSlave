@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2015, Yaacov Zamir <kobi.zamir@gmail.com>
+ * Copyright (c) 2017, Andrew Voznytsa <andrew.voznytsa@gmail.com>, FC_WRITE_REGISTER and FC_WRITE_MULTIPLE_COILS support
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,14 +28,18 @@ enum {
   FC_READ_HOLDING_REGISTERS = 3,
   FC_READ_INPUT_REGISTERS = 4,
   FC_WRITE_COIL = 5,
+  FC_WRITE_REGISTER = 6,
+  FC_WRITE_MULTIPLE_COILS = 15,
   FC_WRITE_MULTIPLE_REGISTERS = 16
 };
 
 enum {
-  CB_READ_COILS = 0,
+  CB_MIN = 0,
+  CB_READ_COILS = CB_MIN,
   CB_READ_REGISTERS,
-  CB_WRITE_COIL,
-  CB_WRITE_MULTIPLE_REGISTERS
+  CB_WRITE_COILS,
+  CB_WRITE_REGISTERS,
+  CB_MAX
 };
 
 enum {
@@ -67,12 +72,13 @@ public:
     Modbus(Stream &serial, uint8_t unitID, int ctrlPin);
     void begin(unsigned long boud);
     int poll();
+    int readCoilFromBuffer(int offset);
     uint16_t readRegisterFromBuffer(int offset);
-    void writeCoilToBuffer(int offset, uint16_t state);
+    void writeCoilToBuffer(int offset, int state);
     void writeRegisterToBuffer(int offset, uint16_t value);
     uint8_t writeStringToBuffer(int offset, uint8_t *str, uint8_t length);
 
-    CallBackFunc cbVector[4];
+    CallBackFunc cbVector[CB_MAX];
 private:
     Stream &serial;
     uint32_t timeout;
