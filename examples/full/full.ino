@@ -71,9 +71,9 @@ void setup() {
      * into the modbus slave callback vector.
      */
     slave.cbVector[CB_READ_COILS] = readDigitalIn;
-    slave.cbVector[CB_WRITE_COIL] = writeDigitlOut;
+    slave.cbVector[CB_WRITE_COILS] = writeDigitalOut;
     slave.cbVector[CB_READ_REGISTERS] = readMemory;
-    slave.cbVector[CB_WRITE_MULTIPLE_REGISTERS] = writeMemory;
+    slave.cbVector[CB_WRITE_REGISTERS] = writeMemory;
     
     // set Serial and slave at baud 9600.
     Serial.begin( BAUDRATE );
@@ -168,18 +168,20 @@ uint8_t readAnalogIn(uint16_t address, uint16_t length) {
 }
 
 /**
- * Handel Force Single Coil (FC=05)
+ * Handle Force Single Coil (FC=05) and Force Multiple Coils (FC=15)
  * set digital output pins (coils).
  */
-uint8_t writeDigitlOut(uint8_t fc, uint16_t address, uint16_t status) {
-    // set digital pin state.
-    digitalWrite(address, status);
+uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length) {
+    // set digital pin state(s).
+    for (int i = 0; i < length; i++) {
+        digitalWrite(address + i, slave.readCoilFromBuffer(i));
+    }
 
     return STATUS_OK;
 }
 
 /**
- * Handel Write Holding Registers (FC=16)
+ * Handle Write Holding Register(s) (FC=06, FC=16)
  * write data into eeprom.
  */
 uint8_t writeMemory(uint8_t fc, uint16_t address, uint16_t length) {
