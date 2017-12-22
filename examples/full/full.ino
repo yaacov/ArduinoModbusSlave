@@ -141,7 +141,7 @@ uint8_t readMemory(uint8_t fc, uint16_t address, uint16_t length) {
     if (fc == FC_READ_INPUT_REGISTERS) {
         // read eeprom memory
         readAnalogIn(address, length);
-        return;
+        return STATUS_OK;
     }
     
     // read program memory.
