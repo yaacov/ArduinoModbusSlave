@@ -53,7 +53,7 @@ Modbus::Modbus(Stream &_serial, uint8_t _unitID, int _ctrlPin)
  */
 void Modbus::begin(unsigned long boud) {
     // set control pin
-    if (ctrlPin) {
+    if (ctrlPin >= 0) {
         pinMode(ctrlPin, OUTPUT);
     }
 
@@ -364,7 +364,7 @@ int Modbus::poll() {
     /**
      * Transmit
      */
-    if (ctrlPin) {
+    if (ctrlPin >= 0) {
         // set rs485 control pin to write
         digitalWrite(ctrlPin, HIGH);
 
