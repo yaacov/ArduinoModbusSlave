@@ -15,6 +15,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF  THIS SOFTWARE.
  */
 
+#ifndef MODBUSSLAVE_H
+#define MODBUSSLAVE_H
 #include <Arduino.h>
 
 #define MAX_BUFFER 64
@@ -86,9 +88,9 @@ private:
     uint16_t last_receive_len;
     uint16_t calcCRC(uint8_t *buf, int length);
 
-    int ctrlPin;
+    int ctrlPin = -1;
     uint8_t unitID;
     uint8_t bufIn[MAX_BUFFER];
     uint8_t bufOut[MAX_BUFFER];
 };
-
+#endif
