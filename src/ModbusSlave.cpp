@@ -44,6 +44,11 @@ Modbus::Modbus(Stream &_serial, uint8_t _unitID, int _ctrlPin)
 
     // set control pin for 485 write.
     ctrlPin = _ctrlPin;
+
+    //Initialize variables
+    timeout = 0;
+    last_receive_time = 0;
+    last_receive_len = 0;
 }
 
 /**
@@ -107,7 +112,7 @@ uint16_t Modbus::calcCRC(uint8_t *buf, int length) {
  */
 int Modbus::poll() {
     int lengthIn;
-    int lengthOut;
+    int lengthOut = 0;
     uint16_t crc;
     uint16_t address;
     uint16_t length;
