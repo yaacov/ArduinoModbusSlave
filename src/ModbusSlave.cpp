@@ -113,7 +113,6 @@ uint16_t Modbus::calcCRC(uint8_t *buf, int length) {
 int Modbus::poll() {
     int lengthIn;
     int lengthOut = 0;
-    int lengthOut;
     uint16_t crc;
     uint16_t address;
     uint16_t length;
