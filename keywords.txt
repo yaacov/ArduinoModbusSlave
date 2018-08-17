@@ -1,0 +1,44 @@
+#######################################
+# Syntax Coloring Map For ModbusSlave
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+ModbusSlave	KEYWORD1
+Modbus	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+begin	KEYWORD2
+poll	KEYWORD2
+readCoilFromBuffer	KEYWORD2
+readRegisterFromBuffer	KEYWORD2
+writeCoilToBuffer	KEYWORD2
+writeRegisterToBuffer	KEYWORD2
+writeStringToBuffer	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+cbVector	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+MAX_BUFFER	LITERAL1
+FC_READ_COILS	LITERAL1
+FC_READ_DISCRETE_INPUT	LITERAL1
+FC_READ_HOLDING_REGISTERS	LITERAL1
+FC_READ_INPUT_REGISTERS	LITERAL1
+FC_WRITE_COIL	LITERAL1
+FC_WRITE_REGISTER	LITERAL1
+FC_WRITE_MULTIPLE_COILS	LITERAL1
+FC_WRITE_MULTIPLE_REGISTERS	LITERAL1
+CB_READ_COILS	LITERAL1
+CB_READ_REGISTERS	LITERAL1
+CB_WRITE_COILS	LITERAL1
+CB_WRITE_REGISTERS	LITERAL1
+COIL_OFF	LITERAL1
+COIL_ON	LITERAL1
