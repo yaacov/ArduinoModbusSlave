@@ -85,11 +85,11 @@ private:
     Stream &serial;
     uint32_t timeout;
     uint32_t last_receive_time;
-    uint16_t last_receive_len;
     uint16_t calcCRC(uint8_t *buf, int length);
 
     int ctrlPin = -1;
     uint8_t unitID;
+    uint8_t lengthIn;
     uint8_t bufIn[MAX_BUFFER];
     uint8_t bufOut[MAX_BUFFER];
 };
