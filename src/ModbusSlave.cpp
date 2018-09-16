@@ -48,7 +48,7 @@ Modbus::Modbus(Stream &_serial, uint8_t _unitID, int _ctrlPin)
     //Initialize variables
     timeout = 0;
     last_receive_time = 0;
-    last_receive_len = 0;
+    lengthIn = 0;
 }
 
 /**
@@ -74,8 +74,8 @@ void Modbus::begin(unsigned long boud) {
     }
 
     // init last received values
-    last_receive_len = 0;
     last_receive_time = 0;
+    lengthIn = 0;
 }
 
 /**
@@ -111,7 +111,6 @@ uint16_t Modbus::calcCRC(uint8_t *buf, int length) {
  * wait for end of frame, parse request and answer it.
  */
 int Modbus::poll() {
-    int lengthIn;
     int lengthOut = 0;
     uint16_t crc;
     uint16_t address;
@@ -126,26 +125,18 @@ int Modbus::poll() {
      */
 
     // check if we have data in buffer.
-    available_len = serial.available();
-    if (available_len != 0) {
-        // if we have new data, update last received time and length.
-        if (available_len != last_receive_len) {
-            last_receive_len = available_len;
-            last_receive_time = micros();
-
-            return 0;
-        }
-
-        // if no new data, wait for T35 microseconds.
-        if (micros() < (last_receive_time + timeout)) {
-            return 0;
+    available_len = serial.available( );
+    if ( available_len > 0 ) {
+        // old data is too old
+        if ( micros( ) > ( last_receive_time + timeout ) ) {
+            lengthIn = 0;
         }
 
         // we waited for the inter-frame timeout, read the frame.
-        lengthIn = serial.readBytes(bufIn, MAX_BUFFER);
-        last_receive_len = 0;
-        last_receive_time = 0;
-    } else {
+        lengthIn += serial.readBytes( bufIn + lengthIn, MAX_BUFFER - lengthIn );
+        last_receive_time = micros( );
+    }
+    else {
         return 0;
     }
 
