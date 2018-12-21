@@ -56,7 +56,7 @@ Modbus::Modbus(Stream &_serial, uint8_t _unitID, int _ctrlPin)
  *
  * @param boud the serial port boud rate.
  */
-void Modbus::begin(unsigned long boud) {
+void Modbus::begin(unsigned long baud) {
     // set control pin
     if (ctrlPin >= 0) {
         pinMode(ctrlPin, OUTPUT);
@@ -66,11 +66,11 @@ void Modbus::begin(unsigned long boud) {
     serial.setTimeout(0);
 
     // set the T35 interframe timeout
-    if (boud > 19200) {
+    if (baud > 19200) {
         timeout = 1750;
     }
     else {
-        timeout = 35000000 / boud; // 1T * 3.5 = T3.5
+        timeout = 35000000 / baud; // 1T * 3.5 = T3.5
     }
 
     // init last received values
@@ -117,6 +117,7 @@ int Modbus::poll() {
     uint16_t length;
     uint16_t available_len;
     uint8_t fc;
+    uint8_t cb_index;
     uint8_t cb_status;
     uint8_t error = STATUS_OK;
 
@@ -140,6 +141,8 @@ int Modbus::poll() {
         return 0;
     }
 
+    
+    
     // check unit-id
     if (bufIn[0] != unitID) return 0;
 
@@ -148,7 +151,7 @@ int Modbus::poll() {
      */
     // check minimum length.
     if (lengthIn < 8) return 0;
-
+    
     /**
      * Get the Function code.
      */
@@ -242,7 +245,7 @@ int Modbus::poll() {
         // crc error
         return 0;
     }
-
+    
     /**
      * Parse command
      */
@@ -259,8 +262,10 @@ int Modbus::poll() {
             memset(bufOut + 3, 0, bufOut[2]);
 
             // if we have uset callback.
-            if (cbVector[CB_READ_COILS]) {
-                cb_status = cbVector[CB_READ_COILS](fc, address, length);
+            cb_index = fc == FC_READ_COILS ? CB_READ_COILS : CB_READ_DISCRETE_INPUTS;
+            
+            if (cbVector[cb_index]) {
+                cb_status = cbVector[cb_index](fc, address, length);
             } else {
                 cb_status = STATUS_ILLEGAL_FUNCTION;
             }
@@ -275,8 +280,10 @@ int Modbus::poll() {
             memset(bufOut + 3, 0, bufOut[2]);
 
             // if we have uset callback.
-            if (cbVector[CB_READ_REGISTERS]) {
-                cb_status = cbVector[CB_READ_REGISTERS](fc, address, length);
+            cb_index = fc == FC_READ_HOLDING_REGISTERS ? CB_READ_HOLDING_REGISTERS : CB_READ_INPUT_REGISTERS;
+            
+            if (cbVector[cb_index]) {
+                cb_status = cbVector[cb_index](fc, address, length);
             } else {
                 cb_status = STATUS_ILLEGAL_FUNCTION;
             }
@@ -300,8 +307,8 @@ int Modbus::poll() {
             memcpy(bufOut + 2, bufIn + 2, 4);
 
             // if we have uset callback
-            if (cbVector[CB_WRITE_REGISTERS]) {
-                cb_status = cbVector[CB_WRITE_REGISTERS](fc, address, 1);
+            if (cbVector[CB_WRITE_HOLDING_REGISTERS]) {
+                cb_status = cbVector[CB_WRITE_HOLDING_REGISTERS](fc, address, 1);
             } else {
                 cb_status = STATUS_ILLEGAL_FUNCTION;
             }
@@ -326,8 +333,8 @@ int Modbus::poll() {
             memcpy(bufOut + 2, bufIn + 2, 4);
 
             // if we have uset callback
-            if (cbVector[CB_WRITE_REGISTERS]) {
-                cb_status = cbVector[CB_WRITE_REGISTERS](fc, address, length);
+            if (cbVector[CB_WRITE_HOLDING_REGISTERS]) {
+                cb_status = cbVector[CB_WRITE_HOLDING_REGISTERS](fc, address, length);
             } else {
                 cb_status = STATUS_ILLEGAL_FUNCTION;
             }
@@ -356,7 +363,7 @@ int Modbus::poll() {
     crc = calcCRC(bufOut, lengthOut - 2);
     bufOut[lengthOut - 2] = crc & 0xff;
     bufOut[lengthOut - 1] = crc >> 8;
-
+    
     /**
      * Transmit
      */
