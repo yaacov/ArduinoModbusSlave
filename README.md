@@ -69,7 +69,7 @@ The callback vector has 4 slots for request handlers:
 * slave.cbVector[CB_READ_HOLDING_REGISTERS] - called on FC3
 * slave.cbVector[CB_READ_INPUT_REGISTERS] - called on FC4
 * slave.cbVector[CB_WRITE_COILS] - called on FC5 and FC15
-* slave.cbVector[CB_WRITE_REGISTERS] - called on FC6 and FC16
+* slave.cbVector[CB_WRITE_HOLDING_REGISTERS] - called on FC6 and FC16
 
 ###### Handler function
 
