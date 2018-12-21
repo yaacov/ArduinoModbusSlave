@@ -49,8 +49,8 @@ void setup() {
      * into the modbus slave callback vector.
      */
     slave.cbVector[CB_WRITE_COILS] = writeDigitalOut;
-    slave.cbVector[CB_READ_COILS] = readDigitalIn;
-    slave.cbVector[CB_READ_REGISTERS] = readAnalogIn;
+    slave.cbVector[CB_READ_DISCRETE_INPUTS] = readDigitalIn;
+    slave.cbVector[CB_READ_INPUT_REGISTERS] = readAnalogIn;
 
     // set Serial and slave at baud 9600.
     Serial.begin( BAUDRATE );
@@ -81,7 +81,7 @@ uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length) {
 }
 
 /**
- * Handel Read Input Status (FC=02/01)
+ * Handel Read Input Status (FC=02)
  * write back the values from digital in pins (input status).
  *
  * handler functions must return void and take:
@@ -99,7 +99,7 @@ uint8_t readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
 }
 
 /**
- * Handel Read Input Registers (FC=04/03)
+ * Handel Read Input Registers (FC=04)
  * write back the values from analog in pins (input registers).
  */
 uint8_t readAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
