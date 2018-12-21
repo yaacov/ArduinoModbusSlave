@@ -70,8 +70,8 @@ void setup() {
     /* register handler functions.
      * into the modbus slave callback vector.
      */
-    slave.cbVector[CB_READ_COILS] = readDigitalOut;
-    slave.cbVector[CB_READ_DISCRETE_INPUTS] = readDigitalIn;
+    slave.cbVector[CB_READ_COILS] = readDigital;
+    slave.cbVector[CB_READ_DISCRETE_INPUTS] = readDigital;
     slave.cbVector[CB_WRITE_COILS] = writeDigitalOut;
     slave.cbVector[CB_READ_INPUT_REGISTERS] = readAnalogIn;
     slave.cbVector[CB_READ_HOLDING_REGISTERS] = readMemory;
@@ -93,30 +93,16 @@ void loop() {
 }
 
 /**
- * Handel Read Input Status (FC=02)
- * write back the values from digital in pins (input status).
+ * Handel Read Input Status (FC=01/02)
+ * write back the values from digital pins (input status).
  *
  * handler functions must return void and take:
  *      uint8_t  fc - function code.
  *      uint16_t address - first register/coil address.
  *      uint16_t length/status - length of data / coil status.
  */
-uint8_t readDigitalIn(uint8_t fc, uint16_t address, uint16_t length) {
+uint8_t readDigital(uint8_t fc, uint16_t address, uint16_t length) {
     // read digital input
-    for (int i = 0; i < length; i++) {
-        // write one boolean (1 bit) to the response buffer.
-        slave.writeCoilToBuffer(i, digitalRead(address + i));
-    }
-
-    return STATUS_OK;
-}
-
-/**
- * Handel Read Coils (FC=01)
- * write back the values from digital in pins (input status).
- */
-uint8_t readDigitalOut(uint16_t address, uint16_t length) {
-    // read coils state
     for (int i = 0; i < length; i++) {
         // write one boolean (1 bit) to the response buffer.
         slave.writeCoilToBuffer(i, digitalRead(address + i));
