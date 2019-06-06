@@ -127,6 +127,7 @@ void Modbus::begin(uint64_t boudrate)
     // disable serial stream timeout and cleans the buffer
     _serialStream.setTimeout(0);
     _serialStream.flush();
+    _serialTransmissionBufferLength = _serialStream.availableForWrite();
 
     // calculate half char time time from the serial's baudrate
     if (boudrate > 19200)
@@ -764,24 +765,39 @@ uint16_t Modbus::writeResponse()
      */
 
     // send buffer
-    uint16_t length = min(
-        _serialStream.availableForWrite(), 
-        _responseBufferLength - _responseBufferWriteIndex
-    );
-    if (length > 0) {
-        length = _serialStream.write(
-            _responseBuffer + _responseBufferWriteIndex, 
-            length
+    uint16_t length;
+    if (_serialTransmissionBufferLength > 0) {
+        uint16_t length = min(
+            _serialStream.availableForWrite(), 
+            _responseBufferLength - _responseBufferWriteIndex
         );
+
+        if (length > 0) {
+            length = _serialStream.write(
+                _responseBuffer + _responseBufferWriteIndex, 
+                length
+            );
+            _responseBufferWriteIndex += length;
+            _totalBytesSent += length;
+        } 
+        
+        if (_serialStream.availableForWrite() < _serialTransmissionBufferLength)
+        { 
+            // still waiting for write to complete
+            _lastCommunicationTime = micros();
+            return length;
+        }
+    } else {
+        // compatibility for badly written software serials; aka AltSoftSerial
+        length = _responseBufferLength - _responseBufferWriteIndex;
+
+        if (length > 0) {
+            length = _serialStream.write(_responseBuffer, length);
+            _serialStream.flush();
+        }
+
         _responseBufferWriteIndex += length;
         _totalBytesSent += length;
-    } 
-    
-    if (_serialStream.availableForWrite() < SERIAL_TX_BUFFER_SIZE)
-    { 
-        // still waiting for write to complete
-        _lastCommunicationTime = micros();
-        return length;
     }
 
     if (_responseBufferWriteIndex >= _responseBufferLength &&

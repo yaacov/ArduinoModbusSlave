@@ -103,6 +103,7 @@ public:
     MobbusCallback cbVector[CB_MAX];
 private:
     Stream &_serialStream;
+    int _serialTransmissionBufferLength = SERIAL_TX_BUFFER_SIZE;
     int _transmissionControlPin = MODBUS_CONTROL_PIN_NONE;
     uint8_t _unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS;
 
