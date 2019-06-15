@@ -765,7 +765,7 @@ uint16_t Modbus::writeResponse()
      */
 
     // send buffer
-    uint16_t length;
+    uint16_t length = 0;
     if (_serialTransmissionBufferLength > 0) {
         uint16_t length = min(
             _serialStream.availableForWrite(), 
