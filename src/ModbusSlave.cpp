@@ -787,6 +787,10 @@ uint16_t Modbus::writeResponse()
             _lastCommunicationTime = micros();
             return length;
         }
+
+        // if buffer reports as empty; make sure it really is 
+        // (`Serial` removes bytes from buffer before sending them)
+        _serialStream.flush();
     } else {
         // compatibility for badly written software serials; aka AltSoftSerial
         length = _responseBufferLength - _responseBufferWriteIndex;
