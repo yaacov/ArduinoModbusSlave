@@ -71,7 +71,20 @@ enum {
   STATUS_GATEWAY_TARGET_DEVICE_FAILED_TO_RESPOND,
 };
 
-typedef uint8_t (*MobbusCallback)(uint8_t, uint16_t, uint16_t);
+typedef uint8_t (*ModbusCallback)(uint8_t, uint16_t, uint16_t);
+
+/**
+ * @class ModbusSlave
+ */
+class ModbusSlave {
+public:
+    ModbusSlave(uint8_t unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS);
+    uint8_t getUnitAddress();
+    void setUnitAddress(uint8_t unitAddress);
+    ModbusCallback cbVector[CB_MAX];
+private:
+    uint8_t _unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS;
+};
 
 /**
  * @class Modbus
@@ -79,7 +92,9 @@ typedef uint8_t (*MobbusCallback)(uint8_t, uint16_t, uint16_t);
 class Modbus {
 public:
     Modbus(uint8_t unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
+    Modbus(ModbusSlave* slaves, uint8_t numberOfSlaves, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
     Modbus(Stream &serialStream, uint8_t unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
+    Modbus(Stream &serialStream, ModbusSlave* slaves, uint8_t numberOfSlaves, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
 
     void begin(uint64_t boudRate);
     void setUnitAddress(uint8_t unitAddress);
@@ -100,12 +115,14 @@ public:
     uint64_t getTotalBytesSent();
     uint64_t getTotalBytesReceived();
 
-    MobbusCallback cbVector[CB_MAX];
+    ModbusCallback* cbVector;
 private:
+    ModbusSlave* _slaves = new ModbusSlave();
+    uint8_t _numberOfSlaves = 1;
+
     Stream &_serialStream;
     int _serialTransmissionBufferLength = SERIAL_TX_BUFFER_SIZE;
     int _transmissionControlPin = MODBUS_CONTROL_PIN_NONE;
-    uint8_t _unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS;
 
     uint16_t _halfCharTimeInMicroSecond;
     uint64_t _lastCommunicationTime;
@@ -122,10 +139,11 @@ private:
     uint64_t _totalBytesSent = 0;
     uint64_t _totalBytesReceived = 0;
     
+    bool relevantAddress(uint8_t unitAddress);
     bool readRequest();
     bool validateRequest();
     uint8_t createResponse();
-    uint8_t executeCallback(uint8_t callbackIndex, uint16_t address, uint16_t length);
+    uint8_t executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uint16_t address, uint16_t length);
     uint16_t writeResponse();
     uint16_t reportException(uint8_t exceptionCode);
     uint16_t calculateCRC(uint8_t *buffer, int length);
