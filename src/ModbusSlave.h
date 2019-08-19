@@ -115,6 +115,13 @@ public:
     uint64_t getTotalBytesSent();
     uint64_t getTotalBytesReceived();
 
+    // This cbVector is a pointer to cbVector of the first slave, to allow shorthand syntax:
+    //     Modbus slave(SLAVE_ID, CTRL_PIN);
+    //     slave.cbVector[CB_WRITE_COILS] = writeDigitalOut;
+    // Instead of the compleate:
+    //     ModbusSlave slaves[1] = { ModbusSlave(ID_SLAVE_1) };
+    //     Modbus modbus(slaves, 1);
+    //     slaves[0].cbVector[CB_WRITE_COILS] = writeDigitalOut;
     ModbusCallback* cbVector;
 private:
     ModbusSlave* _slaves = new ModbusSlave();

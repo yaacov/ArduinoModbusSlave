@@ -682,6 +682,7 @@ uint8_t Modbus::createResponse()
     uint16_t firstAddress;
     uint16_t addressesLength;
     uint8_t callbackIndex;
+    uint16_t requestUnitAddress = _requestBuffer[MODBUS_ADDRESS_INDEX];
 
     /**
      * Match the function code with a callback and execute it
@@ -694,7 +695,7 @@ uint8_t Modbus::createResponse()
         _responseBufferLength += 1;
 
         // execute callback and return the status code
-        return Modbus::executeCallback(_requestBuffer[MODBUS_ADDRESS_INDEX], CB_READ_EXCEPTION_STATUS, 0, 8);
+        return Modbus::executeCallback(requestUnitAddress, CB_READ_EXCEPTION_STATUS, 0, 8);
     case FC_READ_COILS:          // read coils (digital out state)
     case FC_READ_DISCRETE_INPUT: // read input state (digital in)
         // read the the first input address and the number of inputs
@@ -707,7 +708,7 @@ uint8_t Modbus::createResponse()
 
         // execute callback and return the status code
         callbackIndex = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] == FC_READ_COILS ? CB_READ_COILS : CB_READ_DISCRETE_INPUTS;
-        return Modbus::executeCallback(_requestBuffer[MODBUS_ADDRESS_INDEX], callbackIndex, firstAddress, addressesLength);
+        return Modbus::executeCallback(requestUnitAddress, callbackIndex, firstAddress, addressesLength);
     case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
     case FC_READ_INPUT_REGISTERS:   // read input registers (analog in)
         // read the starting address and the number of inputs
@@ -720,7 +721,7 @@ uint8_t Modbus::createResponse()
 
         // execute callback and return the status code
         callbackIndex = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] == FC_READ_HOLDING_REGISTERS ? CB_READ_HOLDING_REGISTERS : CB_READ_INPUT_REGISTERS;
-        return Modbus::executeCallback(_requestBuffer[MODBUS_ADDRESS_INDEX], callbackIndex, firstAddress, addressesLength);
+        return Modbus::executeCallback(requestUnitAddress, callbackIndex, firstAddress, addressesLength);
     case FC_WRITE_COIL: // write one coil (digital out)
         // read the address
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
@@ -731,7 +732,7 @@ uint8_t Modbus::createResponse()
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
 
         // execute callback and return the status code
-        return Modbus::executeCallback(_requestBuffer[MODBUS_ADDRESS_INDEX], CB_WRITE_COILS, firstAddress, 1);
+        return Modbus::executeCallback(requestUnitAddress, CB_WRITE_COILS, firstAddress, 1);
     case FC_WRITE_REGISTER:
         // read the address
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
@@ -742,7 +743,7 @@ uint8_t Modbus::createResponse()
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
 
         // execute callback and return the status code
-        return Modbus::executeCallback(_requestBuffer[MODBUS_ADDRESS_INDEX], CB_WRITE_HOLDING_REGISTERS, firstAddress, 1);
+        return Modbus::executeCallback(requestUnitAddress, CB_WRITE_HOLDING_REGISTERS, firstAddress, 1);
     case FC_WRITE_MULTIPLE_COILS: // write coils (digital out)
         // read the starting address and the number of outputs
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
@@ -754,7 +755,7 @@ uint8_t Modbus::createResponse()
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
         
         // execute callback and return the status code
-        return Modbus::executeCallback(_requestBuffer[MODBUS_ADDRESS_INDEX], CB_WRITE_COILS, firstAddress, addressesLength);
+        return Modbus::executeCallback(requestUnitAddress, CB_WRITE_COILS, firstAddress, addressesLength);
     case FC_WRITE_MULTIPLE_REGISTERS: // write holding registers (analog out)
         // read the starting address and the number of outputs
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
@@ -766,7 +767,7 @@ uint8_t Modbus::createResponse()
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
 
         // execute callback and return the status code
-        return Modbus::executeCallback(_requestBuffer[MODBUS_ADDRESS_INDEX], CB_WRITE_HOLDING_REGISTERS, firstAddress, addressesLength);
+        return Modbus::executeCallback(requestUnitAddress, CB_WRITE_HOLDING_REGISTERS, firstAddress, addressesLength);
     default:
         return STATUS_ILLEGAL_FUNCTION;
     }
