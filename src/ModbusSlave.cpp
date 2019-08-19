@@ -49,10 +49,42 @@
  */
 
 /**
+ * Initialize a modbus slave object.
+ *
+ * @param unitAddress the modbus slave unit address.
+ */
+ModbusSlave::ModbusSlave(uint8_t unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS)
+{
+    ModbusSlave::setUnitAddress(unitAddress);
+}
+
+/**
+ * Get the modbus slaves unit address.
+ */
+uint8_t ModbusSlave::getUnitAddress()
+{
+    return _unitAddress;
+}
+
+/**
+ * Sets the modbus slaves unit address.
+ *
+ * @param unitAddress the modbus slaves unit address.
+ */
+void ModbusSlave::setUnitAddress(uint8_t unitAddress)
+{
+    if (unitAddress < MODBUS_ADDRESS_MIN || unitAddress > MODBUS_ADDRESS_MAX)
+    {
+        return;
+    }
+    _unitAddress = unitAddress;
+}
+
+/**
  * Initialize the modbus object.
  *
  * @param unitAddress the modbus slave unit address.
- * @param transmissionControlPin the digital out pin to be used for RS485 
+ * @param transmissionControlPin the digital out pin to be used for RS485.
  * transmission control.
  */
 Modbus::Modbus(uint8_t unitAddress, int transmissionControlPin)
@@ -65,32 +97,64 @@ Modbus::Modbus(uint8_t unitAddress, int transmissionControlPin)
  *
  * @param serialStream the serial stream used for the modbus communication.
  * @param unitAddress the modbus slave unit address.
- * @param transmissionControlPin the digital out pin to be used for RS485
+ * @param transmissionControlPin the digital out pin to be used for RS485.
  * transmission control.
  */
 Modbus::Modbus(Stream &serialStream, uint8_t unitAddress, int transmissionControlPin)
     : _serialStream(serialStream)
 {
     // set modbus slave unit id
-    Modbus::setUnitAddress(unitAddress);
+    _slaves[0].setUnitAddress(unitAddress);
+    cbVector = _slaves[0].cbVector;
 
     // set transmission control pin for RS485 communications.
     _transmissionControlPin = transmissionControlPin;
 }
 
 /**
- * Sets the modbus slave unit address.
+ * Initialize the modbus object.
  *
- * @param unitAddress the modbus slave unit address.
+ * @param slaves Pointer to an array of ModbusSlaves.
+ * @param numberOfSlaves The number of ModbusSlaves in the array.
+ * @param transmissionControlPin the digital out pin to be used for RS485.
+ * transmission control.
+ */
+Modbus::Modbus(ModbusSlave* slaves, uint8_t numberOfSlaves, int transmissionControlPin)
+    : Modbus(Serial, slaves, numberOfSlaves, transmissionControlPin)
+{
+}
+
+/**
+ * Initialize the modbus object.
+ *
+ * @param serialStream the serial stream used for the modbus communication.
+ * @param slaves Pointer to an array of ModbusSlaves.
+ * @param numberOfSlaves The number of ModbusSlaves in the array.
+ * @param transmissionControlPin the digital out pin to be used for RS485.
+ * transmission control.
+ */
+Modbus::Modbus(Stream &serialStream, ModbusSlave* slaves, uint8_t numberOfSlaves, int transmissionControlPin)
+    : _serialStream(serialStream)
+{
+    // set modbus slaves
+    _slaves = slaves;
+    _numberOfSlaves = numberOfSlaves;
+    cbVector = _slaves[0].cbVector;
+
+    // set transmission control pin for RS485 communications.
+    _transmissionControlPin = transmissionControlPin;
+}
+
+/**
+ * Sets the modbus slaves unit address.
+ *
+ * @param unitAddress the modbus slaves unit address.
  */
 void Modbus::setUnitAddress(uint8_t unitAddress)
 {
-    if (unitAddress < MODBUS_ADDRESS_MIN || unitAddress > MODBUS_ADDRESS_MAX)
-    {
-        return;
-    }
-    _unitAddress = unitAddress;
+    _slaves[0].setUnitAddress(unitAddress);
 }
+
 
 /**
  * Gets the total number of bytes sent.
@@ -481,9 +545,7 @@ bool Modbus::readRequest()
             lenght = _serialStream.readBytes(_requestBuffer + _requestBufferLength, MODBUS_MAX_BUFFER - _requestBufferLength);
 
             // if this is the first read, check the address to reject irrelevant requests
-            if (_requestBufferLength == 0 &&
-                lenght > MODBUS_ADDRESS_INDEX &&
-                (_requestBuffer[MODBUS_ADDRESS_INDEX] != _unitAddress && _requestBuffer[MODBUS_ADDRESS_INDEX] != MODBUS_BROADCAST_ADDRESS))
+            if (_requestBufferLength == 0 && lenght > MODBUS_ADDRESS_INDEX && !Modbus::relevantAddress(_requestBuffer[MODBUS_ADDRESS_INDEX]))
             {
                 // bad address, stop reading
                 _isRequestBufferReading = false;
@@ -516,6 +578,23 @@ bool Modbus::readRequest()
     }
 
     return !_isRequestBufferReading && (_requestBufferLength >= MODBUS_FRAME_SIZE);
+}
+
+/**
+ * Returns if one of the slaves has serves the given address.
+ *
+ * @param unitAddress The address that was received.
+ */
+bool Modbus::relevantAddress(uint8_t unitAddress)
+{
+    if (unitAddress == MODBUS_BROADCAST_ADDRESS)
+        return true;
+    for (uint8_t i = 0; i < _numberOfSlaves; ++i)
+    {
+        if (_slaves[i].getUnitAddress() == unitAddress)
+            return true;
+    }
+    return false;
 }
 
 /**
@@ -603,6 +682,7 @@ uint8_t Modbus::createResponse()
     uint16_t firstAddress;
     uint16_t addressesLength;
     uint8_t callbackIndex;
+    uint16_t requestUnitAddress = _requestBuffer[MODBUS_ADDRESS_INDEX];
 
     /**
      * Match the function code with a callback and execute it
@@ -615,7 +695,7 @@ uint8_t Modbus::createResponse()
         _responseBufferLength += 1;
 
         // execute callback and return the status code
-        return Modbus::executeCallback(CB_READ_EXCEPTION_STATUS, 0, 8);
+        return Modbus::executeCallback(requestUnitAddress, CB_READ_EXCEPTION_STATUS, 0, 8);
     case FC_READ_COILS:          // read coils (digital out state)
     case FC_READ_DISCRETE_INPUT: // read input state (digital in)
         // read the the first input address and the number of inputs
@@ -628,7 +708,7 @@ uint8_t Modbus::createResponse()
 
         // execute callback and return the status code
         callbackIndex = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] == FC_READ_COILS ? CB_READ_COILS : CB_READ_DISCRETE_INPUTS;
-        return Modbus::executeCallback(callbackIndex, firstAddress, addressesLength);
+        return Modbus::executeCallback(requestUnitAddress, callbackIndex, firstAddress, addressesLength);
     case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
     case FC_READ_INPUT_REGISTERS:   // read input registers (analog in)
         // read the starting address and the number of inputs
@@ -641,7 +721,7 @@ uint8_t Modbus::createResponse()
 
         // execute callback and return the status code
         callbackIndex = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] == FC_READ_HOLDING_REGISTERS ? CB_READ_HOLDING_REGISTERS : CB_READ_INPUT_REGISTERS;
-        return Modbus::executeCallback(callbackIndex, firstAddress, addressesLength);
+        return Modbus::executeCallback(requestUnitAddress, callbackIndex, firstAddress, addressesLength);
     case FC_WRITE_COIL: // write one coil (digital out)
         // read the address
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
@@ -652,7 +732,7 @@ uint8_t Modbus::createResponse()
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
 
         // execute callback and return the status code
-        return Modbus::executeCallback(CB_WRITE_COILS, firstAddress, 1);
+        return Modbus::executeCallback(requestUnitAddress, CB_WRITE_COILS, firstAddress, 1);
     case FC_WRITE_REGISTER:
         // read the address
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
@@ -663,7 +743,7 @@ uint8_t Modbus::createResponse()
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
 
         // execute callback and return the status code
-        return Modbus::executeCallback(CB_WRITE_HOLDING_REGISTERS, firstAddress, 1);
+        return Modbus::executeCallback(requestUnitAddress, CB_WRITE_HOLDING_REGISTERS, firstAddress, 1);
     case FC_WRITE_MULTIPLE_COILS: // write coils (digital out)
         // read the starting address and the number of outputs
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
@@ -675,7 +755,7 @@ uint8_t Modbus::createResponse()
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
         
         // execute callback and return the status code
-        return Modbus::executeCallback(CB_WRITE_COILS, firstAddress, addressesLength);
+        return Modbus::executeCallback(requestUnitAddress, CB_WRITE_COILS, firstAddress, addressesLength);
     case FC_WRITE_MULTIPLE_REGISTERS: // write holding registers (analog out)
         // read the starting address and the number of outputs
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
@@ -687,7 +767,7 @@ uint8_t Modbus::createResponse()
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
 
         // execute callback and return the status code
-        return Modbus::executeCallback(CB_WRITE_HOLDING_REGISTERS, firstAddress, addressesLength);
+        return Modbus::executeCallback(requestUnitAddress, CB_WRITE_HOLDING_REGISTERS, firstAddress, addressesLength);
     default:
         return STATUS_ILLEGAL_FUNCTION;
     }
@@ -698,16 +778,23 @@ uint8_t Modbus::createResponse()
  *
  * @return the status code representing the success of this operation
  */
-uint8_t Modbus::executeCallback(uint8_t callbackIndex, uint16_t address, uint16_t length)
+uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uint16_t address, uint16_t length)
 {
-    if (cbVector[callbackIndex])
+    for (uint8_t i = 0; i < _numberOfSlaves; ++i)
     {
-        return cbVector[callbackIndex](Modbus::readFunctionCode(), address, length);
+        if (_slaves[i].getUnitAddress() == slaveAddress)
+        {
+            if (_slaves[i].cbVector[callbackIndex])
+            {
+                return _slaves[i].cbVector[callbackIndex](Modbus::readFunctionCode(), address, length);
+            }
+            else
+            {
+                return STATUS_ILLEGAL_FUNCTION;
+            }
+        }
     }
-    else
-    {
-        return STATUS_ILLEGAL_FUNCTION;
-    }
+    return STATUS_ILLEGAL_FUNCTION;
 }
 
 /**

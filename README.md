@@ -2,7 +2,7 @@
 
 ##### ModbusSlave library for Arduino
 
-This modbus slave library uses callbacks to handle modbus requests.
+This modbus slave library uses callbacks to handle modbus requests for one or multiple slave ids.
 Handler functions are called on modbus request, and the users can implement them in their sketch.
 
 ### ModbusSlave is fun and easy to use
@@ -24,6 +24,7 @@ And thats it, your sketch is modbus enabled. (see the full examples for more det
 - [Install](#install)
 - [Competabilty](#competabilty)
 - [Callback vector](#callback-vector)
+      - [Multiple Slaves](#multiple-slaves)
       - [Slots](#slots)
       - [Handler function](#handler-function)
       - [Function codes](#function-codes)
@@ -58,7 +59,11 @@ To set a different Serial class, explicitly set the Stream in the Modbus class c
 
 ### Callback vector
 
-Users register handler functions into the callback vector.
+Users register handler functions into the callback vector of the slave.
+
+###### Multiple Slaves
+
+This can be done independently for one or multiple slaves with different IDs.
 
 ###### Slots
 
@@ -91,7 +96,6 @@ Return codes:
 *  STATUS_MEMORY_PARITY_ERROR,
 *  STATUS_GATEWAY_PATH_UNAVAILABLE,
 *  STATUS_GATEWAY_TARGET_DEVICE_FAILED_TO_RESPOND
-
 
 ###### Function codes
 
