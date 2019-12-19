@@ -53,7 +53,7 @@
  *
  * @param unitAddress the modbus slave unit address.
  */
-ModbusSlave::ModbusSlave(uint8_t unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS)
+ModbusSlave::ModbusSlave(uint8_t unitAddress)
 {
     ModbusSlave::setUnitAddress(unitAddress);
 }
