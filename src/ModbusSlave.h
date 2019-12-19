@@ -128,7 +128,13 @@ private:
     uint8_t _numberOfSlaves = 1;
 
     Stream &_serialStream;
+
+#ifndef ARDUINO_ARCH_AVR
+    int _serialTransmissionBufferLength = SERIAL_BUFFER_SIZE;
+#else
     int _serialTransmissionBufferLength = SERIAL_TX_BUFFER_SIZE;
+#endif
+  
     int _transmissionControlPin = MODBUS_CONTROL_PIN_NONE;
 
     uint16_t _halfCharTimeInMicroSecond;
