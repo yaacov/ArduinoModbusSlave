@@ -51,7 +51,7 @@
 /**
  * Initialize a modbus slave object.
  *
- * @param unitAddress the modbus slave unit address.
+ * @param unitAddress The modbus slave unit address.
  */
 ModbusSlave::ModbusSlave(uint8_t unitAddress)
 {
@@ -69,7 +69,7 @@ uint8_t ModbusSlave::getUnitAddress()
 /**
  * Sets the modbus slaves unit address.
  *
- * @param unitAddress the modbus slaves unit address.
+ * @param unitAddress The modbus slaves unit address.
  */
 void ModbusSlave::setUnitAddress(uint8_t unitAddress)
 {
@@ -83,9 +83,8 @@ void ModbusSlave::setUnitAddress(uint8_t unitAddress)
 /**
  * Initialize the modbus object.
  *
- * @param unitAddress the modbus slave unit address.
- * @param transmissionControlPin the digital out pin to be used for RS485.
- * transmission control.
+ * @param unitAddress The modbus slave unit address.
+ * @param transmissionControlPin The digital out pin to be used for RS485 transmission control.
  */
 Modbus::Modbus(uint8_t unitAddress, int transmissionControlPin)
     : Modbus(Serial, unitAddress, transmissionControlPin)
@@ -95,19 +94,18 @@ Modbus::Modbus(uint8_t unitAddress, int transmissionControlPin)
 /**
  * Initialize the modbus object.
  *
- * @param serialStream the serial stream used for the modbus communication.
- * @param unitAddress the modbus slave unit address.
- * @param transmissionControlPin the digital out pin to be used for RS485.
- * transmission control.
+ * @param serialStream The serial stream used for the modbus communication.
+ * @param unitAddress The modbus slave unit address.
+ * @param transmissionControlPin The digital out pin to be used for RS485 transmission control.
  */
 Modbus::Modbus(Stream &serialStream, uint8_t unitAddress, int transmissionControlPin)
     : _serialStream(serialStream)
 {
-    // set modbus slave unit id
+    // Set modbus slave unit id.
     _slaves[0].setUnitAddress(unitAddress);
     cbVector = _slaves[0].cbVector;
 
-    // set transmission control pin for RS485 communications.
+    // Set transmission control pin for RS485 communication.
     _transmissionControlPin = transmissionControlPin;
 }
 
@@ -116,10 +114,9 @@ Modbus::Modbus(Stream &serialStream, uint8_t unitAddress, int transmissionContro
  *
  * @param slaves Pointer to an array of ModbusSlaves.
  * @param numberOfSlaves The number of ModbusSlaves in the array.
- * @param transmissionControlPin the digital out pin to be used for RS485.
- * transmission control.
+ * @param transmissionControlPin The digital out pin to be used for RS485 transmission control.
  */
-Modbus::Modbus(ModbusSlave* slaves, uint8_t numberOfSlaves, int transmissionControlPin)
+Modbus::Modbus(ModbusSlave *slaves, uint8_t numberOfSlaves, int transmissionControlPin)
     : Modbus(Serial, slaves, numberOfSlaves, transmissionControlPin)
 {
 }
@@ -130,84 +127,83 @@ Modbus::Modbus(ModbusSlave* slaves, uint8_t numberOfSlaves, int transmissionCont
  * @param serialStream the serial stream used for the modbus communication.
  * @param slaves Pointer to an array of ModbusSlaves.
  * @param numberOfSlaves The number of ModbusSlaves in the array.
- * @param transmissionControlPin the digital out pin to be used for RS485.
- * transmission control.
+ * @param transmissionControlPin The digital out pin to be used for RS485 transmission control.
  */
-Modbus::Modbus(Stream &serialStream, ModbusSlave* slaves, uint8_t numberOfSlaves, int transmissionControlPin)
+Modbus::Modbus(Stream &serialStream, ModbusSlave *slaves, uint8_t numberOfSlaves, int transmissionControlPin)
     : _serialStream(serialStream)
 {
-    // set modbus slaves
+    // Set the modbus slaves.
     _slaves = slaves;
     _numberOfSlaves = numberOfSlaves;
     cbVector = _slaves[0].cbVector;
 
-    // set transmission control pin for RS485 communications.
+    // Set transmission control pin for RS485 communication.
     _transmissionControlPin = transmissionControlPin;
 }
 
 /**
  * Sets the modbus slaves unit address.
  *
- * @param unitAddress the modbus slaves unit address.
+ * @param unitAddress The modbus slaves unit address.
  */
 void Modbus::setUnitAddress(uint8_t unitAddress)
 {
     _slaves[0].setUnitAddress(unitAddress);
 }
 
-
 /**
  * Gets the total number of bytes sent.
  *
- * @return the number of bytes.
+ * @return The number of bytes.
  */
-uint64_t Modbus::getTotalBytesSent() {
+uint64_t Modbus::getTotalBytesSent()
+{
     return _totalBytesSent;
 }
 
 /**
  * Gets the total number of bytes received.
  *
- * @return the number of bytes.
+ * @return The number of bytes.
  */
-uint64_t Modbus::getTotalBytesReceived() {
+uint64_t Modbus::getTotalBytesReceived()
+{
     return _totalBytesReceived;
 }
 
 /**
  * Begins initializing the serial stream and preparing to read request messages.
  *
- * @param boudrate the serial port boudrate.
+ * @param baudrate The serial port baudrate.
  */
-void Modbus::begin(uint64_t boudrate)
+void Modbus::begin(uint64_t baudrate)
 {
-    // initialize transmission control pin state
+    // Initialize the transmission control pin and set it's state.
     if (_transmissionControlPin > MODBUS_CONTROL_PIN_NONE)
     {
         pinMode(_transmissionControlPin, OUTPUT);
         digitalWrite(_transmissionControlPin, LOW);
     }
 
-    // disable serial stream timeout and cleans the buffer
+    // Disable the serial stream timeout and clear the buffer.
     _serialStream.setTimeout(0);
     _serialStream.flush();
     _serialTransmissionBufferLength = _serialStream.availableForWrite();
 
-    // calculate half char time time from the serial's baudrate
-    if (boudrate > 19200)
+    // Calculate the half char time based on the serial's baudrate.
+    if (baudrate > 19200)
     {
-        _halfCharTimeInMicroSecond = 250; // 0.5T
+        _halfCharTimeInMicroSecond = 250; // 0.5T.
     }
     else
     {
-        _halfCharTimeInMicroSecond = 5000000 / boudrate; // 0.5T
+        _halfCharTimeInMicroSecond = 5000000 / baudrate; // 0.5T.
     }
 
-    // set the last received time to 3.5T on the future to ignore
-    // request currently in the middle of transmission
+    // Set the last received time to 3.5T in the future to ignore request currently in the middle of transmission.
     _lastCommunicationTime = micros() + (_halfCharTimeInMicroSecond * MODBUS_FULL_SILENCE_MULTIPLIER);
 
-    // sets the request buffer length to zero
+    // Sets the request buffer length to zero.
     _requestBufferLength = 0;
 }
 
@@ -215,51 +211,51 @@ void Modbus::begin(uint64_t boudrate)
  * Checks if we have a complete request, parses the request, executes the
  * corresponding registered callback and writes the response.
  *
- * @return the number of bytes written as response
+ * @return The number of bytes written as response.
  */
 uint8_t Modbus::poll()
 {
-    // if we are in the writing, let it end first
-    if (_isResponseBufferWriting) 
+    // If we are still writing a message, let it finish first.
+    if (_isResponseBufferWriting)
     {
         return Modbus::writeResponse();
     }
 
-    // wait for one complete request packet
+    // Wait for one complete request packet.
     if (!Modbus::readRequest())
     {
         return 0;
     }
 
-    // prepare output buffer
+    // Prepare the output buffer.
     memset(_responseBuffer, 0, MODBUS_MAX_BUFFER);
     _responseBuffer[MODBUS_ADDRESS_INDEX] = _requestBuffer[MODBUS_ADDRESS_INDEX];
     _responseBuffer[MODBUS_FUNCTION_CODE_INDEX] = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX];
     _responseBufferLength = MODBUS_FRAME_SIZE;
 
-    // validate request
+    // Validate the incoming request.
     if (!Modbus::validateRequest())
     {
         return 0;
     }
 
-    // execute request and fill the response
+    // Execute the incoming request and create the response.
     uint8_t status = Modbus::createResponse();
 
-    // check if the callback execution failed
+    // Check if the callback execution succeeded.
     if (status != STATUS_OK)
     {
         return Modbus::reportException(status);
     }
 
-    // writes the response being created
+    // Write the create response to the serial interface.
     return Modbus::writeResponse();
 }
 
 /**
- * Reads and returns the current request message's function code
+ * Returns the current request message's function code.
  *
- * @return a byte containing the current request message function code
+ * @return A byte containing the current request message function code.
  */
 uint8_t Modbus::readFunctionCode()
 {
@@ -271,9 +267,9 @@ uint8_t Modbus::readFunctionCode()
 }
 
 /**
- * Reads and returns the current request message's target unit address
+ * Returns the current request message's target unit address.
  *
- * @return a byte containing the current request message unit address
+ * @return A byte containing the current request message unit address.
  */
 uint8_t Modbus::readUnitAddress()
 {
@@ -288,8 +284,7 @@ uint8_t Modbus::readUnitAddress()
  * Returns a boolean value indicating if the request currently being processed 
  * is a broadcast message and therefore does not need a response.
  *
- * @return true if the current request message is a broadcase message; otherwise
- * false
+ * @return True if the current request message is a broadcase message; otherwise false.
  */
 bool Modbus::isBroadcast()
 {
@@ -297,10 +292,10 @@ bool Modbus::isBroadcast()
 }
 
 /**
- * Read coil state from input buffer.
+ * Reads a coil state from input buffer.
  *
- * @param offset the coil offset from first coil in this buffer.
- * @return the coil state from buffer (true / false)
+ * @param offset The offset from the first coil in the buffer.
+ * @return The coil state from buffer (true / false).
  */
 bool Modbus::readCoilFromBuffer(int offset)
 {
@@ -308,18 +303,18 @@ bool Modbus::readCoilFromBuffer(int offset)
     {
         if (offset == 0)
         {
-            // (2 x coilAddress, 1 x value)
+            // (2 x coilAddress, 1 x value).
             return readUInt16(_requestBuffer, MODBUS_DATA_INDEX + 2) == COIL_ON;
         }
         return false;
     }
     else if (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX] == FC_WRITE_MULTIPLE_COILS)
     {
-        // (2 x firstCoilAddress, 2 x coilsCount, 1 x valueBytes, n x values)
+        // (2 x firstCoilAddress, 2 x coilsCount, 1 x valueBytes, n x values).
         uint16_t index = MODBUS_DATA_INDEX + 5 + (offset / 8);
         uint8_t bitIndex = offset % 8;
 
-        // check offset
+        // Check the offset.
         if (index < _requestBufferLength - MODBUS_CRC_LENGTH)
         {
             return bitRead(_requestBuffer[index], bitIndex);
@@ -329,10 +324,10 @@ bool Modbus::readCoilFromBuffer(int offset)
 }
 
 /**
- * Read register value from input buffer.
+ * Reads a register value from input buffer.
  *
- * @param offset the register offset from first register in this buffer.
- * @return the register value from buffer.
+ * @param offset The offset from the first register in the buffer.
+ * @return The register value from buffer.
  */
 uint16_t Modbus::readRegisterFromBuffer(int offset)
 {
@@ -340,16 +335,16 @@ uint16_t Modbus::readRegisterFromBuffer(int offset)
     {
         if (offset == 0)
         {
-            // (2 x coilAddress, 2 x value)
+            // (2 x coilAddress, 2 x value).
             return readUInt16(_requestBuffer, MODBUS_DATA_INDEX + 2);
         }
     }
     else if (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX] == FC_WRITE_MULTIPLE_REGISTERS)
     {
-        // (2 x firstRegisterAddress, 2 x registersCount, 1 x valueBytes, n x values)
+        // (2 x firstRegisterAddress, 2 x registersCount, 1 x valueBytes, n x values).
         uint16_t index = MODBUS_DATA_INDEX + 5 + (offset * 2);
 
-        // check offset
+        // Check the offset.
         if (index < _requestBufferLength - MODBUS_CRC_LENGTH)
         {
             return readUInt16(_requestBuffer, index);
@@ -359,23 +354,24 @@ uint16_t Modbus::readRegisterFromBuffer(int offset)
 }
 
 /**
- * Writes exception status to buffer
+ * Writes the exception status to the buffer.
  *
- * @param offset the exception status flag.
- * @param the exception status flag (true / false)
+ * @param offset 
+ * @param status Exception status flag (true / false)
  */
 uint8_t Modbus::writeExceptionStatusToBuffer(int offset, bool status)
 {
-    // check function code
-    if (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_EXCEPTION_STATUS) {
+    // Check the function code.
+    if (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_EXCEPTION_STATUS)
+    {
         return STATUS_ILLEGAL_DATA_ADDRESS;
     }
 
-    // (1 x values)
+    // (1 x values).
     uint16_t index = MODBUS_DATA_INDEX;
     uint8_t bitIndex = offset % 8;
 
-    // check offset
+    // Check the offset.
     if (index >= _responseBufferLength - MODBUS_CRC_LENGTH)
     {
         return STATUS_ILLEGAL_DATA_ADDRESS;
@@ -394,24 +390,25 @@ uint8_t Modbus::writeExceptionStatusToBuffer(int offset, bool status)
 }
 
 /**
- * Writes coil state to output buffer.
+ * Writes the coil state to the output buffer.
  *
- * @param offset the coil offset from first coil in this buffer.
- * @param state the coil state to write into buffer (true / false)
+ * @param offset The offset from the first coil in the buffer.
+ * @param state The state to write into the buffer (true / false).
  */
 uint8_t Modbus::writeCoilToBuffer(int offset, bool state)
 {
-    // check function code
-    if (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_DISCRETE_INPUT && 
-        _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_COILS) {
+    // Check the function code.
+    if (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_DISCRETE_INPUT &&
+        _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_COILS)
+    {
         return STATUS_ILLEGAL_DATA_ADDRESS;
     }
 
-    // (1 x valueBytes, n x values)
+    // (1 x valueBytes, n x values).
     uint16_t index = MODBUS_DATA_INDEX + 1 + (offset / 8);
     uint8_t bitIndex = offset % 8;
 
-    // check offset
+    // Check the offset.
     if (index >= _responseBufferLength - MODBUS_CRC_LENGTH)
     {
         return STATUS_ILLEGAL_DATA_ADDRESS;
@@ -425,15 +422,15 @@ uint8_t Modbus::writeCoilToBuffer(int offset, bool state)
     {
         bitClear(_responseBuffer[index], bitIndex);
     }
-    
+
     return STATUS_OK;
 }
 
 /**
- * Writes digital input to output buffer.
+ * Writes the digital input to output buffer.
  *
- * @param offset the input offset from first input in this buffer.
- * @param state the digital input state to write into buffer (true / false)
+ * @param offset The offset from the first input in the buffer.
+ * @param state The state to write into the buffer (true / false).
  */
 uint8_t Modbus::writeDiscreteInputToBuffer(int offset, bool state)
 {
@@ -441,23 +438,24 @@ uint8_t Modbus::writeDiscreteInputToBuffer(int offset, bool state)
 }
 
 /**
- * Writes register value to output buffer.
+ * Writes the register value to the output buffer.
  *
- * @param offset the register offset from first register in this buffer.
- * @param value the register value to write into buffer.
+ * @param offset The offset from the first register in the buffer.
+ * @param value The register value to write into buffer.
  */
 uint8_t Modbus::writeRegisterToBuffer(int offset, uint16_t value)
 {
-    // check function code
-    if (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_HOLDING_REGISTERS && 
-        _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_INPUT_REGISTERS) {
+    // Check the function code.
+    if (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_HOLDING_REGISTERS &&
+        _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] != FC_READ_INPUT_REGISTERS)
+    {
         return STATUS_ILLEGAL_DATA_ADDRESS;
     }
 
-    // (1 x valueBytes, n x values)
+    // (1 x valueBytes, n x values).
     uint16_t index = MODBUS_DATA_INDEX + 1 + (offset * 2);
 
-    // check offset
+    // Check the offset.
     if ((index + 2) > (_responseBufferLength - MODBUS_CRC_LENGTH))
     {
         return STATUS_ILLEGAL_DATA_ADDRESS;
@@ -465,25 +463,24 @@ uint8_t Modbus::writeRegisterToBuffer(int offset, uint16_t value)
 
     _responseBuffer[index] = value >> 8;
     _responseBuffer[index + 1] = value & 0xff;
-    
+
     return STATUS_OK;
 }
 
 /**
- * Writes arbitrary string of uint8_t to output buffer.
+ * Writes an uint8_t array to the output buffer.
  *
- * @param offset the register offset from first register in this buffer.
- * @param str the string to write into buffer.
- * @param length the string length.
- * @return STATUS_OK in case of success, STATUS_ILLEGAL_DATA_ADDRESS
- *      if data doesn't fit in buffer
+ * @param offset The offset from the first register in the buffer.
+ * @param str The array to write into the buffer.
+ * @param length The array length.
+ * @return STATUS_OK if succeeded, STATUS_ILLEGAL_DATA_ADDRESS if the data doesn't fit in the buffer.
  */
 uint8_t Modbus::writeStringToBuffer(int offset, uint8_t *str, uint8_t length)
 {
-    // (1 x valueBytes, n x values)
+    // (1 x valueBytes, n x values).
     uint8_t index = MODBUS_DATA_INDEX + 1 + (offset * 2);
 
-    // check string length.
+    // Check the length of the array.
     if ((index + length) > _responseBufferLength - MODBUS_CRC_LENGTH)
     {
         return STATUS_ILLEGAL_DATA_ADDRESS;
@@ -501,78 +498,77 @@ uint8_t Modbus::writeStringToBuffer(int offset, uint8_t *str, uint8_t length)
  */
 
 /**
- * Reads a new request from the serial stream and fills the request buffer
+ * Reads a new request from the serial stream and fills the request buffer.
  *
- * @return true if the buffer is filled with a request and is ready to
- * be processed; otherwise false.
+ * @return True if the buffer is filled with a request and is ready to be processed; otherwise false.
  */
 bool Modbus::readRequest()
 {
-    /**
-     * Read one data packet and report when received completely
-     */
+    // Read one data packet and report when it's received completely.
     uint16_t length = _serialStream.available();
     if (length > 0)
     {
-        // if not yet started reading
+        // If the reading hasn't started yet.
         if (!_isRequestBufferReading)
         {
-            // And it already took 1.5T from the last message
+            // And it already took 1.5T since the last message.
             if ((micros() - _lastCommunicationTime) > (_halfCharTimeInMicroSecond * MODBUS_HALF_SILENCE_MULTIPLIER))
             {
-                // start reading and clear buffer
+                // Start the reading and clear the buffer.
                 _requestBufferLength = 0;
                 _isRequestBufferReading = true;
             }
             else
             {
-                // discard data
+                // Discard the incoming data.
                 _serialStream.read();
             }
         }
 
-        // if already in reading
+        // If we started reading.
         if (_isRequestBufferReading)
         {
+            // Check if the buffer is not already full.
             if (_requestBufferLength == MODBUS_MAX_BUFFER)
             {
-                // buffer is already full; stop reading
+                // And if so, stop reading.
                 _isRequestBufferReading = false;
             }
 
-            // add new bytes to buffer
+            // Check if there is enough room for the incoming bytes in the buffer.
             length = min(length, MODBUS_MAX_BUFFER - _requestBufferLength);
+            // Read the data from the serial stream into the buffer.
             length = _serialStream.readBytes(_requestBuffer + _requestBufferLength, MODBUS_MAX_BUFFER - _requestBufferLength);
 
-            // if this is the first read, check the address to reject irrelevant requests
+            // If this is the first read cycle, check the address to reject irrelevant requests.
             if (_requestBufferLength == 0 && length > MODBUS_ADDRESS_INDEX && !Modbus::relevantAddress(_requestBuffer[MODBUS_ADDRESS_INDEX]))
             {
-                // bad address, stop reading
+                // This is not one of the addresses on this device, stop reading.
                 _isRequestBufferReading = false;
             }
 
-            // move byte pointer forward
+            // Move the buffer pointer forward by the amount of bytes read from the serial stream.
             _requestBufferLength += length;
             _totalBytesReceived += length;
         }
 
-        // save the time of last received byte(s)
+        // Save the time of the last received byte(s).
         _lastCommunicationTime = micros();
 
-        // wait for more data
+        // Wait for more data.
         return false;
     }
     else
     {
-        // if we are in reading but no data is available for 1.5T; this request is completed
+        // If we are still reading but no data has been received for 1.5T then this request message is complete.
         if (_isRequestBufferReading && ((micros() - _lastCommunicationTime) > (_halfCharTimeInMicroSecond * MODBUS_HALF_SILENCE_MULTIPLIER)))
         {
-            // allow for new requests to be processed
+            // Stop the reading to allow new messages to be read.
             _isRequestBufferReading = false;
         }
         else
         {
-            // otherwise, wait
+            // The request is not yet complete, so wait a bit longer.
             return false;
         }
     }
@@ -581,90 +577,100 @@ bool Modbus::readRequest()
 }
 
 /**
- * Returns if one of the slaves has serves the given address.
+ * Returns true if one of the slaves listens to the given address.
  *
- * @param unitAddress The address that was received.
+ * @param unitAddress The received address.
  */
 bool Modbus::relevantAddress(uint8_t unitAddress)
 {
-    if (unitAddress == MODBUS_BROADCAST_ADDRESS)
+    // Every device should listen to broadcast messages.
+    if (isBroadcast())
+    {
         return true;
+    }
+
+    // Iterate over all the slaves and check if it listens to the given address, if so return true.
     for (uint8_t i = 0; i < _numberOfSlaves; ++i)
     {
         if (_slaves[i].getUnitAddress() == unitAddress)
+        {
             return true;
+        }
     }
+
     return false;
 }
 
 /**
  * Validates the request message currently in the input buffer.
  *
- * @return true if the request is valid; otherwise false
+ * @return True if the request is valid; otherwise false.
  */
 bool Modbus::validateRequest()
 {
-    // minimum buffer size (1 x Address, 1 x Function, n x Data, 2 x CRC)
+    // The minimum buffer size (1 x Address, 1 x Function, n x Data, 2 x CRC).
     uint16_t expected_requestBufferSize = MODBUS_FRAME_SIZE;
-    // check data validity based on the function code
+
+    // Check the validity of the data based on the function code.
     switch (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX])
     {
     case FC_READ_EXCEPTION_STATUS:
-        // broadcast is not supported
-        if (_requestBuffer[MODBUS_ADDRESS_INDEX] == MODBUS_BROADCAST_ADDRESS)
+        // Broadcast is not supported, so ignore this request.
+        if (isBroadcast())
         {
-            // ignore
             return false;
         }
         break;
-    case FC_READ_COILS:             // read coils (digital read)
-    case FC_READ_DISCRETE_INPUT:    // read input state (digital read)
-    case FC_READ_HOLDING_REGISTERS: // read holding registers (analog read)
-    case FC_READ_INPUT_REGISTERS:   // read input registers (analog read)
-        // broadcast is not supported
-        if (_requestBuffer[MODBUS_ADDRESS_INDEX] == MODBUS_BROADCAST_ADDRESS)
+
+    case FC_READ_COILS:             // Read coils (digital read).
+    case FC_READ_DISCRETE_INPUT:    // Read input state (digital read).
+    case FC_READ_HOLDING_REGISTERS: // Read holding registers (analog read).
+    case FC_READ_INPUT_REGISTERS:   // Read input registers (analog read).
+        // Broadcast is not supported, so ignore this request.
+        if (isBroadcast())
         {
-            // ignore
             return false;
         }
-        // (2 x Index, 2 x Count)
+        // Add bytes to expected request size (2 x Index, 2 x Count).
         expected_requestBufferSize += 4;
         break;
-    case FC_WRITE_COIL:     // write coils (digital write)
-    case FC_WRITE_REGISTER: // write regosters (digital write)
-        // (2 x Index, 2 x Count)
+
+    case FC_WRITE_COIL:     // Write coils (digital write).
+    case FC_WRITE_REGISTER: // Write regosters (digital write).
+        // Add bytes to expected request size (2 x Index, 2 x Count).
         expected_requestBufferSize += 4;
         break;
+
     case FC_WRITE_MULTIPLE_COILS:
     case FC_WRITE_MULTIPLE_REGISTERS:
-        // (2 x Index, 2 x Count, 1 x Bytes)
+        // Add bytes to expected request size (2 x Index, 2 x Count, 1 x Bytes).
         expected_requestBufferSize += 5;
         if (_requestBufferLength >= expected_requestBufferSize)
         {
-            // (n x Bytes)
+            // Add bytes to expected request size (n x Bytes).
             expected_requestBufferSize += _requestBuffer[6];
         }
         break;
+
     default:
-        // unknown command
+        // Unknown function code.
         Modbus::reportException(STATUS_ILLEGAL_FUNCTION);
         return false;
     }
 
+    // If the received data is smaller than what we expect, ignore this request.
     if (_requestBufferLength < expected_requestBufferSize)
     {
-        // data is smaller than expected, ignore
         return false;
     }
 
-    // set correct data size
+    // Set the length to be read from the request to the calculated expected length.
     _requestBufferLength = expected_requestBufferSize;
 
-    // check crc
+    // Check the crc, and if it isn't correct ignore the request.
     uint16_t crc = readCRC(_requestBuffer, _requestBufferLength);
     if (Modbus::calculateCRC(_requestBuffer, _requestBufferLength - MODBUS_CRC_LENGTH) != crc)
     {
-        // ignore
         return false;
     }
 
@@ -672,10 +678,9 @@ bool Modbus::validateRequest()
 }
 
 /**
- * Fills the output buffer with the response to the request already in the
- * input buffer.
+ * Fills the output buffer with the response to the request from the input buffer.
  *
- * @return the status code representing the success of this operation
+ * @return The status code representing the outcome of this operation.
  */
 uint8_t Modbus::createResponse()
 {
@@ -684,106 +689,112 @@ uint8_t Modbus::createResponse()
     uint8_t callbackIndex;
     uint16_t requestUnitAddress = _requestBuffer[MODBUS_ADDRESS_INDEX];
 
-    /**
-     * Match the function code with a callback and execute it
-     * as well as preparing the response buffer
-     */
+    // Match the function code with a callback and execute it and prepare the response buffer.
     switch (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX])
     {
     case FC_READ_EXCEPTION_STATUS:
-        // add response data length to output buffer length
+        // Add the length of the response data to the length of the output.
         _responseBufferLength += 1;
 
-        // execute callback and return the status code
+        // Execute the callback and return the status code.
         return Modbus::executeCallback(requestUnitAddress, CB_READ_EXCEPTION_STATUS, 0, 8);
-    case FC_READ_COILS:          // read coils (digital out state)
-    case FC_READ_DISCRETE_INPUT: // read input state (digital in)
-        // read the the first input address and the number of inputs
+
+    case FC_READ_COILS:          // Read coils (digital out state).
+    case FC_READ_DISCRETE_INPUT: // Read input state (digital in).
+        // Read the first address and the number of inputs.
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
         addressesLength = readUInt16(_requestBuffer, MODBUS_DATA_INDEX + 2);
 
-        // calculate response data length and add to output buffer length
+        // Calculate the length of the response data and add it to the length of the output buffer.
         _responseBuffer[MODBUS_DATA_INDEX] = (addressesLength / 8) + (addressesLength % 8 != 0);
         _responseBufferLength += 1 + _responseBuffer[MODBUS_DATA_INDEX];
 
-        // execute callback and return the status code
+        // Execute the callback and return the status code.
         callbackIndex = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] == FC_READ_COILS ? CB_READ_COILS : CB_READ_DISCRETE_INPUTS;
         return Modbus::executeCallback(requestUnitAddress, callbackIndex, firstAddress, addressesLength);
-    case FC_READ_HOLDING_REGISTERS: // read holding registers (analog out state)
-    case FC_READ_INPUT_REGISTERS:   // read input registers (analog in)
-        // read the starting address and the number of inputs
+
+    case FC_READ_HOLDING_REGISTERS: // Read holding registers (analog out state)
+    case FC_READ_INPUT_REGISTERS:   // Read input registers (analog in)
+        // Read the first address and the number of inputs.
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
         addressesLength = readUInt16(_requestBuffer, MODBUS_DATA_INDEX + 2);
 
-        // calculate response data length and add to output buffer length
+        // Calculate the length of the response data and add it to the length of the output buffer.
         _responseBuffer[MODBUS_DATA_INDEX] = 2 * addressesLength;
         _responseBufferLength += 1 + _responseBuffer[MODBUS_DATA_INDEX];
 
-        // execute callback and return the status code
+        // Execute the callback and return the status code.
         callbackIndex = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX] == FC_READ_HOLDING_REGISTERS ? CB_READ_HOLDING_REGISTERS : CB_READ_INPUT_REGISTERS;
         return Modbus::executeCallback(requestUnitAddress, callbackIndex, firstAddress, addressesLength);
-    case FC_WRITE_COIL: // write one coil (digital out)
-        // read the address
+
+    case FC_WRITE_COIL: // Write one coil (digital out).
+        // Read the address.
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
 
-        // add response data length to output buffer length
+        // Add the length of the response data to the length of the output.
         _responseBufferLength += 4;
-        // copy parts of the request data that need to be in the response data
+        // Copy the parts of the request data that need to be in the response data.
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
 
-        // execute callback and return the status code
+        // Execute the callback and return the status code.
         return Modbus::executeCallback(requestUnitAddress, CB_WRITE_COILS, firstAddress, 1);
-    case FC_WRITE_REGISTER:
-        // read the address
+
+    case FC_WRITE_REGISTER: // Write one holding register (analog out).
+        // Read the address.
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
 
-        // add response data length to output buffer length
+        // Add the length of the response data to the length of the output.
         _responseBufferLength += 4;
-        // copy parts of the request data that need to be in the response data
+        // Copy the parts of the request data that need to be in the response data.
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
 
-        // execute callback and return the status code
+        // Execute the callback and return the status code.
         return Modbus::executeCallback(requestUnitAddress, CB_WRITE_HOLDING_REGISTERS, firstAddress, 1);
-    case FC_WRITE_MULTIPLE_COILS: // write coils (digital out)
-        // read the starting address and the number of outputs
+
+    case FC_WRITE_MULTIPLE_COILS: // Write multiple coils (digital out)
+        // Read the first address and the number of outputs.
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
         addressesLength = readUInt16(_requestBuffer, MODBUS_DATA_INDEX + 2);
 
-        // add response data length to output buffer length
+        // Add the length of the response data to the length of the output.
         _responseBufferLength += 4;
-        // copy parts of the request data that need to be in the response data
+        // Copy the parts of the request data that need to be in the response data.
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
-        
-        // execute callback and return the status code
+
+        // Execute the callback and return the status code.
         return Modbus::executeCallback(requestUnitAddress, CB_WRITE_COILS, firstAddress, addressesLength);
-    case FC_WRITE_MULTIPLE_REGISTERS: // write holding registers (analog out)
-        // read the starting address and the number of outputs
+
+    case FC_WRITE_MULTIPLE_REGISTERS: // Write multiple holding registers (analog out).
+        // Read the first address and the number of outputs.
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
         addressesLength = readUInt16(_requestBuffer, MODBUS_DATA_INDEX + 2);
 
-        // add response data length to output buffer length
+        // Add the length of the response data to the length of the output.
         _responseBufferLength += 4;
-        // copy parts of the request data that need to be in the response data
+        // Copy the parts of the request data that need to be in the response data.
         memcpy(_responseBuffer + MODBUS_DATA_INDEX, _requestBuffer + MODBUS_DATA_INDEX, _responseBufferLength - MODBUS_FRAME_SIZE);
 
-        // execute callback and return the status code
+        // Execute the callback and return the status code.
         return Modbus::executeCallback(requestUnitAddress, CB_WRITE_HOLDING_REGISTERS, firstAddress, addressesLength);
+
     default:
         return STATUS_ILLEGAL_FUNCTION;
     }
 }
 
 /**
- * Executes a callback
+ * Executes a callback.
  *
- * @return the status code representing the success of this operation
+ * @return The status code representing the outcome of this operation.
  */
 uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uint16_t address, uint16_t length)
 {
+    // Search for the correct slave to execute callback on.
     for (uint8_t i = 0; i < _numberOfSlaves; ++i)
     {
         if (_slaves[i].getUnitAddress() == slaveAddress)
         {
+            // If the callback exist execute it, otherwise return that this is an illegal function.
             if (_slaves[i].cbVector[callbackIndex])
             {
                 return _slaves[i].cbVector[callbackIndex](Modbus::readFunctionCode(), address, length);
@@ -798,9 +809,9 @@ uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uin
 }
 
 /**
- * Writes the output buffer to serial stream
+ * Writes the output buffer to the serial stream.
  *
- * @return The number of bytes written
+ * @return The number of bytes written.
  */
 uint16_t Modbus::writeResponse()
 {
@@ -808,15 +819,17 @@ uint16_t Modbus::writeResponse()
      * Validate
      */
 
-    // check if there is a response and this is supposed to be the first write
-    if (_responseBufferWriteIndex == 0 && _responseBufferLength >= MODBUS_FRAME_SIZE) { 
-        // set status as writing
+    // Check if there is a response created and that this is the first time it is written.
+    if (_responseBufferWriteIndex == 0 && _responseBufferLength >= MODBUS_FRAME_SIZE)
+    {
+        // Start the writing.
         _isResponseBufferWriting = true;
-    } 
+    }
 
-    // check if we are not in writing or the address is broadcast
-    if (!_isResponseBufferWriting || _responseBuffer[MODBUS_ADDRESS_INDEX] == MODBUS_BROADCAST_ADDRESS) { 
-        // cleanup and ignore
+    // If we are not writing or the address is the broadcast address, cleanup and return.
+    if (!_isResponseBufferWriting || isBroadcast())
+        ;
+    {
         _isResponseBufferWriting = false;
         _responseBufferWriteIndex = 0;
         _responseBufferLength = 0;
@@ -827,22 +840,23 @@ uint16_t Modbus::writeResponse()
      * Preparing
      */
 
-    // if this is supposed to be the first write
-    if (_responseBufferWriteIndex == 0) {
-        // if we still need to wait
+    // If this is the first write.
+    if (_responseBufferWriteIndex == 0)
+    {
+        // Check if we already passed 1.5T.
         if ((micros() - _lastCommunicationTime) <= (_halfCharTimeInMicroSecond * MODBUS_HALF_SILENCE_MULTIPLIER))
         {
-            // ignore
             return 0;
         }
 
-        // calculate and fill crc
+        // Calculate and add the CRC.
         uint16_t crc = Modbus::calculateCRC(_responseBuffer, _responseBufferLength - MODBUS_CRC_LENGTH);
         _responseBuffer[_responseBufferLength - MODBUS_CRC_LENGTH] = crc & 0xff;
         _responseBuffer[(_responseBufferLength - MODBUS_CRC_LENGTH) + 1] = crc >> 8;
 
-        // enter transmission mode
-        if (_transmissionControlPin > MODBUS_CONTROL_PIN_NONE) {
+        // Start transmission mode for RS485.
+        if (_transmissionControlPin > MODBUS_CONTROL_PIN_NONE)
+        {
             digitalWrite(_transmissionControlPin, HIGH);
         }
     }
@@ -851,38 +865,43 @@ uint16_t Modbus::writeResponse()
      * Transmit
      */
 
-    // send buffer
+    // Send the output buffer over the serial stream.
     uint16_t length = 0;
-    if (_serialTransmissionBufferLength > 0) {
+    if (_serialTransmissionBufferLength > 0)
+    {
+        // Check the maximum length of bytes to be send in one call.
         uint16_t length = min(
-            _serialStream.availableForWrite(), 
-            _responseBufferLength - _responseBufferWriteIndex
-        );
+            _serialStream.availableForWrite(),
+            _responseBufferLength - _responseBufferWriteIndex);
 
-        if (length > 0) {
+        if (length > 0)
+        {
+            // Write the maximum length of bytes over the serial stream.
             length = _serialStream.write(
-                _responseBuffer + _responseBufferWriteIndex, 
-                length
-            );
+                _responseBuffer + _responseBufferWriteIndex,
+                length);
             _responseBufferWriteIndex += length;
             _totalBytesSent += length;
-        } 
-        
+        }
+
+        // Check if all the data has been sent.
         if (_serialStream.availableForWrite() < _serialTransmissionBufferLength)
-        { 
-            // still waiting for write to complete
+        {
             _lastCommunicationTime = micros();
             return length;
         }
 
-        // if buffer reports as empty; make sure it really is 
-        // (`Serial` removes bytes from buffer before sending them)
+        // If the serial stream reports empty, make sure it is.
+        // (`Serial` removes bytes from buffer before sending them).
         _serialStream.flush();
-    } else {
-        // compatibility for badly written software serials; aka AltSoftSerial
+    }
+    else
+    {
+        // Compatibility mode for badly written software serials; aka AltSoftSerial.
         length = _responseBufferLength - _responseBufferWriteIndex;
 
-        if (length > 0) {
+        if (length > 0)
+        {
             length = _serialStream.write(_responseBuffer, length);
             _serialStream.flush();
         }
@@ -891,15 +910,16 @@ uint16_t Modbus::writeResponse()
         _totalBytesSent += length;
     }
 
-    if (_responseBufferWriteIndex >= _responseBufferLength &&
-        (micros() - _lastCommunicationTime) > (_halfCharTimeInMicroSecond * MODBUS_HALF_SILENCE_MULTIPLIER)) {
-
-        // end transmission
-        if (_transmissionControlPin > MODBUS_CONTROL_PIN_NONE) {
+    // If all the data has been send and more than 1.5T has passed.
+    if (_responseBufferWriteIndex >= _responseBufferLength && (micros() - _lastCommunicationTime) > (_halfCharTimeInMicroSecond * MODBUS_HALF_SILENCE_MULTIPLIER))
+    {
+        // End the transmission.
+        if (_transmissionControlPin > MODBUS_CONTROL_PIN_NONE)
+        {
             digitalWrite(_transmissionControlPin, LOW);
         }
 
-        // cleanup
+        // And cleanup the variables.
         _isResponseBufferWriting = false;
         _responseBufferWriteIndex = 0;
         _responseBufferLength = 0;
@@ -909,19 +929,20 @@ uint16_t Modbus::writeResponse()
 }
 
 /**
- * Fills the output buffer with an exception in regard to the request already 
- * in the input buffer and writes the response. No need to do it later.
+ * Fills the output buffer with an exception based on the request in the input buffer and writes the response over the serial stream.
  *
- * @param exceptionCode the status code to report.
- * @return the number of bytes written
+ * @param exceptionCode The status code to report.
+ * @return The number of bytes written.
  */
 uint16_t Modbus::reportException(uint8_t exceptionCode)
 {
-    // we don't respond to broadcast messages
-    if (_requestBuffer[MODBUS_ADDRESS_INDEX] == MODBUS_BROADCAST_ADDRESS)
+    // Broadcast is not supported, so ignore this request.
+    if (isBroadcast())
     {
         return 0;
     }
+
+    // Add the exception code to the output buffer.
     _responseBufferLength = MODBUS_FRAME_SIZE + 1;
     _responseBuffer[MODBUS_FUNCTION_CODE_INDEX] |= 0x80;
     _responseBuffer[MODBUS_DATA_INDEX] = exceptionCode;
@@ -930,13 +951,12 @@ uint16_t Modbus::reportException(uint8_t exceptionCode)
 }
 
 /**
- * Calculates the CRC of the passed byte array from zero up to the
- * passed length.
+ * Calculate the CRC of the passed byte array from zero up to the passed length.
  *
- * @param buffer the byte array containing the data.
- * @param length the length of the byte array.
+ * @param buffer The byte array containing the data.
+ * @param length The length of the byte array.
  *
- * @return the calculated CRC as an unsigned 16 bit integer.
+ * @return The calculated CRC as an unsigned 16 bit integer.
  */
 uint16_t Modbus::calculateCRC(uint8_t *buffer, int length)
 {
@@ -944,7 +964,7 @@ uint16_t Modbus::calculateCRC(uint8_t *buffer, int length)
     uint16_t crc = 0xFFFF;
     uint16_t tmp;
 
-    // calculate crc
+    // Calculate the CRC.
     for (i = 0; i < length; i++)
     {
         crc = crc ^ buffer[i];
