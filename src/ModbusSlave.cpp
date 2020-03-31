@@ -511,8 +511,8 @@ bool Modbus::readRequest()
     /**
      * Read one data packet and report when received completely
      */
-    uint16_t lenght = _serialStream.available();
-    if (lenght > 0)
+    uint16_t length = _serialStream.available();
+    if (length > 0)
     {
         // if not yet started reading
         if (!_isRequestBufferReading)
@@ -541,19 +541,19 @@ bool Modbus::readRequest()
             }
 
             // add new bytes to buffer
-            lenght = min(lenght, MODBUS_MAX_BUFFER - _requestBufferLength);
-            lenght = _serialStream.readBytes(_requestBuffer + _requestBufferLength, MODBUS_MAX_BUFFER - _requestBufferLength);
+            length = min(length, MODBUS_MAX_BUFFER - _requestBufferLength);
+            length = _serialStream.readBytes(_requestBuffer + _requestBufferLength, MODBUS_MAX_BUFFER - _requestBufferLength);
 
             // if this is the first read, check the address to reject irrelevant requests
-            if (_requestBufferLength == 0 && lenght > MODBUS_ADDRESS_INDEX && !Modbus::relevantAddress(_requestBuffer[MODBUS_ADDRESS_INDEX]))
+            if (_requestBufferLength == 0 && length > MODBUS_ADDRESS_INDEX && !Modbus::relevantAddress(_requestBuffer[MODBUS_ADDRESS_INDEX]))
             {
                 // bad address, stop reading
                 _isRequestBufferReading = false;
             }
 
             // move byte pointer forward
-            _requestBufferLength += lenght;
-            _totalBytesReceived += lenght;
+            _requestBufferLength += length;
+            _totalBytesReceived += length;
         }
 
         // save the time of last received byte(s)
