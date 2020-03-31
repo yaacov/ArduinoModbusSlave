@@ -3,94 +3,137 @@
 
     Read and write to two different slaves using Modbus serial connection.
     
-    This sketch show how to use the callback vector for reading and
+    This sketch shows you how to use the callback vector for reading and
     writing to multiple slaves.
     
-    * Communicate with two slaves holding the addresses 1 and 3.
-	* Set the callback functions of the slaves indipendently.
+    * Communicate with two slaves with the addresses 1 and 3.
+	* Set the callback functions of the slaves independently.
 
-    Created 19 08 2019
+    Created 19-08-2019
     By Tobias Schaffner
+
+    Updated 31-03-2020
+    By Yorick Smilda
 
     https://github.com/yaacov/ArduinoModbusSlave
 */
 
 #include <ModbusSlave.h>
 
-#define NUMBER_OF_SLAVES  2
-#define ID_SLAVE_1        1
-#define ID_SLAVE_2        3
+#define NUMBER_OF_SLAVES 2
+#define ID_SLAVE_1 1
+#define ID_SLAVE_2 3
 
-uint16_t memorySlave1[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-uint16_t memorySlave2[] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
+#define SERIAL_BAUDRATE 9600 // Change to the baudrate you want to use for Modbus communication.
+#define SERIAL_PORT Serial   // Serial port to use for RS485 communication, change to the port you're using.
 
-// Initialize the array of slaves
-ModbusSlave slaves[NUMBER_OF_SLAVES] = { ModbusSlave(ID_SLAVE_1), ModbusSlave(ID_SLAVE_2) };
+uint16_t memory_slave1[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+uint16_t memory_slave2[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
 
-// Create the Modbus Object with the slave array 
-Modbus modbus(slaves, NUMBER_OF_SLAVES);
+// You shouldn't have to change anything below this to get this example to work
 
-void setup() {
-    // register handler functions for the slaves
+uint8_t memory_slave1_size = sizeof(memory_slave1) / sizeof(memory_slave1[0]); // Get the size of the input_pins array
+uint8_t memory_slave2_size = sizeof(memory_slave2) / sizeof(memory_slave2[0]); // Get the size of the output_pins array
+
+// Initialize an array of slaves.
+ModbusSlave slaves[NUMBER_OF_SLAVES] = {ModbusSlave(ID_SLAVE_1), ModbusSlave(ID_SLAVE_2)};
+
+// Create an Modbus Object and pass the array of slaves.
+Modbus modbus(SERIAL_PORT, slaves, NUMBER_OF_SLAVES);
+
+void setup()
+{
+    // Register functions to call when a certain function code is received.
     slaves[0].cbVector[CB_READ_HOLDING_REGISTERS] = readMemorySlave1;
     slaves[0].cbVector[CB_WRITE_HOLDING_REGISTERS] = writeMemorySlave1;
     slaves[1].cbVector[CB_READ_HOLDING_REGISTERS] = readMemorySlave2;
     slaves[1].cbVector[CB_WRITE_HOLDING_REGISTERS] = writeMemorySlave2;
-	
-    // start slave at baud 9600 on Serial
-    Serial.begin( 9600 );
-    modbus.begin( 9600 );
+
+    // Set the serial port and slave to the given baudrate.
+    SERIAL_PORT.begin(SERIAL_BAUDRATE);
+    modbus.begin(SERIAL_BAUDRATE);
 }
 
-void loop() {
-    // listen for modbus commands con serial port
+void loop()
+{
+    // Listen for modbus requests on the serial port.
+    // When a request is received it's going to get validated.
+    // And if there is a function registered to the received function code, this function will be executed.
     modbus.poll();
 }
 
-/**
- * Handel Read Holding Registers (FC=03)
- */
-uint8_t readMemorySlave1(uint8_t fc, uint16_t address, uint16_t length) {
-    Serial.println("In read memory Slave 1");
-    // write registers into the answer buffer
-    for (uint8_t i = 0; i < length; ++i) {
-        modbus.writeRegisterToBuffer(i, memorySlave1[address + i]);
+// Handle the function code Read Holding Registers (FC=03).
+uint8_t readMemorySlave1(uint8_t fc, uint16_t address, uint16_t length)
+{
+    // Check if the requested addresses exist in the array.
+    if (address > memory_slave1_size || (address + length) > memory_slave1_size)
+    {
+        return STATUS_ILLEGAL_DATA_ADDRESS;
+    }
+
+    Serial.println(F("Reading memory from Slave 1"));
+
+    // Write the memory array into the send buffer.
+    for (uint8_t i = 0; i < length; ++i)
+    {
+        modbus.writeRegisterToBuffer(i, memory_slave1[address + i]);
     }
     return STATUS_OK;
 }
 
-/**
- * Handle Write Holding Register(s) (FC=06, FC=16)
- */
-uint8_t writeMemorySlave1(uint8_t fc, uint16_t address, uint16_t length) {
-    Serial.println("In write memory Slave 1");
-    // set digital pin state(s).
-    for (uint8_t i = 0; i < length; ++i) {
-        memorySlave1[address + i] = modbus.readRegisterFromBuffer(i);
+// Handle the function codes Write Holding Register(s) (FC=06, FC=16)
+uint8_t writeMemorySlave1(uint8_t fc, uint16_t address, uint16_t length)
+{
+    // Check if the requested addresses exist in the array
+    if (address > memory_slave1_size || (address + length) > memory_slave1_size)
+    {
+        return STATUS_ILLEGAL_DATA_ADDRESS;
+    }
+
+    Serial.println(F("Writing memory on Slave 1"));
+
+    // Write the received data into the memory array.
+    for (uint8_t i = 0; i < length; ++i)
+    {
+        memory_slave1[address + i] = modbus.readRegisterFromBuffer(i);
     }
     return STATUS_OK;
 }
 
-/**
- * Handel Read Holding Registers (FC=03)
- */
-uint8_t readMemorySlave2(uint8_t fc, uint16_t address, uint16_t length) {
-    Serial.println("In read memory Slave 2");
-    // write registers into the answer buffer
-    for (uint8_t i = 0; i < length; ++i) {
-        modbus.writeRegisterToBuffer(i, memorySlave2[address + i]);
+// Handle the function code Read Holding Registers (FC=03).
+uint8_t readMemorySlave2(uint8_t fc, uint16_t address, uint16_t length)
+{
+    // Check if the requested addresses exist in the array.
+    if (address > memory_slave2_size || (address + length) > memory_slave2_size)
+    {
+        return STATUS_ILLEGAL_DATA_ADDRESS;
+    }
+
+    Serial.println(F("Reading memory from Slave 2"));
+
+    // Write the memory array into the send buffer.
+    for (uint8_t i = 0; i < length; ++i)
+    {
+        modbus.writeRegisterToBuffer(i, memory_slave2[address + i]);
     }
     return STATUS_OK;
 }
 
-/**
- * Handle Write Holding Register(s) (FC=06, FC=16)
- */
-uint8_t writeMemorySlave2(uint8_t fc, uint16_t address, uint16_t length) {
-    Serial.println("In write memory Slave 2");
-    // set digital pin state(s).
-    for (uint8_t i = 0; i < length; ++i) {
-        memorySlave2[address + i] = modbus.readRegisterFromBuffer(i);
+// Handle the function codes Write Holding Register(s) (FC=06, FC=16)
+uint8_t writeMemorySlave2(uint8_t fc, uint16_t address, uint16_t length)
+{
+    // Check if the requested addresses exist in the array
+    if (address > memory_slave2_size || (address + length) > memory_slave2_size)
+    {
+        return STATUS_ILLEGAL_DATA_ADDRESS;
+    }
+
+    Serial.println(F("Writing memory on Slave 2"));
+
+    // Write the received data into the memory array.
+    for (uint8_t i = 0; i < length; ++i)
+    {
+        memory_slave2[address + i] = modbus.readRegisterFromBuffer(i);
     }
     return STATUS_OK;
 }
