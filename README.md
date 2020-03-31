@@ -119,7 +119,7 @@ Usable return codes:
 - uint8_t writeCoilToBuffer(int offset, int state) : write one coil state into the response buffer.
 - uint8_t writeDiscreteInputToBuffer(int offset, bool state) : write one discrete input value into the response buffer.
 - uint8_t writeRegisterToBuffer(int offset, uint16_t value) : write one register value into the response buffer.
-- uint8_t writeStringToBuffer(int offset, uint8_t \*str, uint8_t length); : writes an array of data into the response register.
+- uint8_t writeArrayToBuffer(int offset, uint16_t \*str, uint8_t length); : writes an array of data into the response register.
 
 ---
 
