@@ -92,7 +92,7 @@ void loop()
 }
 
 // Modbus handler functions
-// The handler functions must return void and take the following parameters:
+// The handler functions must return an uint8_t and take the following parameters:
 //     uint8_t  fc - function code
 //     uint16_t address - first register/coil address
 //     uint16_t length/status - length of data / coil status

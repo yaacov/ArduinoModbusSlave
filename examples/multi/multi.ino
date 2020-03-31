@@ -62,6 +62,12 @@ void loop()
     modbus.poll();
 }
 
+// Modbus handler functions
+// The handler functions must return an uint8_t and take the following parameters:
+//     uint8_t  fc - function code
+//     uint16_t address - first register/coil address
+//     uint16_t length/status - length of data / coil status
+
 // Handle the function code Read Holding Registers (FC=03).
 uint8_t readMemorySlave1(uint8_t fc, uint16_t address, uint16_t length)
 {
