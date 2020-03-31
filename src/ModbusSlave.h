@@ -112,7 +112,7 @@ public:
   uint8_t writeCoilToBuffer(int offset, bool state);
   uint8_t writeDiscreteInputToBuffer(int offset, bool state);
   uint8_t writeRegisterToBuffer(int offset, uint16_t value);
-  uint8_t writeStringToBuffer(int offset, uint8_t *str, uint8_t length);
+  uint8_t writeArrayToBuffer(int offset, uint16_t *str, uint8_t length);
 
   uint8_t readFunctionCode();
   uint8_t readUnitAddress();

@@ -462,7 +462,7 @@ uint8_t Modbus::writeRegisterToBuffer(int offset, uint16_t value)
     }
 
     _responseBuffer[index] = value >> 8;
-    _responseBuffer[index + 1] = value & 0xff;
+    _responseBuffer[index + 1] = value & 0xFF;
 
     return STATUS_OK;
 }
@@ -470,23 +470,28 @@ uint8_t Modbus::writeRegisterToBuffer(int offset, uint16_t value)
 /**
  * Writes an uint8_t array to the output buffer.
  *
- * @param offset The offset from the first register in the buffer.
- * @param str The array to write into the buffer.
- * @param length The array length.
+ * @param offset The offset from the first data register in the response buffer.
+ * @param str The array to write into the response buffer.
+ * @param length The length of the array.
  * @return STATUS_OK if succeeded, STATUS_ILLEGAL_DATA_ADDRESS if the data doesn't fit in the buffer.
  */
-uint8_t Modbus::writeStringToBuffer(int offset, uint8_t *str, uint8_t length)
+uint8_t Modbus::writeArrayToBuffer(int offset, uint16_t *str, uint8_t length)
 {
-    // (1 x valueBytes, n x values).
+    // Index to start writing from (1 x valueBytes, n x values (offset)).
     uint8_t index = MODBUS_DATA_INDEX + 1 + (offset * 2);
 
-    // Check the length of the array.
-    if ((index + length) > _responseBufferLength - MODBUS_CRC_LENGTH)
+    // Check if the array fits in the remaining space of the response.
+    if ((index + (length * 2)) > _responseBufferLength - MODBUS_CRC_LENGTH)
     {
+        // If not return an exception.
         return STATUS_ILLEGAL_DATA_ADDRESS;
     }
 
-    memcpy(_responseBuffer + index, str, length);
+    for (int i = 0; i < length; i++)
+    {
+        _responseBuffer[index + (i * 2)] = str[i] >> 8;
+        _responseBuffer[index + (i * 2) + 1] = str[i] & 0xFF;
+    }
 
     return STATUS_OK;
 }
@@ -851,7 +856,7 @@ uint16_t Modbus::writeResponse()
 
         // Calculate and add the CRC.
         uint16_t crc = Modbus::calculateCRC(_responseBuffer, _responseBufferLength - MODBUS_CRC_LENGTH);
-        _responseBuffer[_responseBufferLength - MODBUS_CRC_LENGTH] = crc & 0xff;
+        _responseBuffer[_responseBufferLength - MODBUS_CRC_LENGTH] = crc & 0xFF;
         _responseBuffer[(_responseBufferLength - MODBUS_CRC_LENGTH) + 1] = crc >> 8;
 
         // Start transmission mode for RS485.
