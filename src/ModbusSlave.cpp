@@ -833,7 +833,6 @@ uint16_t Modbus::writeResponse()
 
     // If we are not writing or the address is the broadcast address, cleanup and return.
     if (!_isResponseBufferWriting || isBroadcast())
-        ;
     {
         _isResponseBufferWriting = false;
         _responseBufferWriteIndex = 0;
