@@ -198,7 +198,7 @@ uint8_t writeMemory(uint8_t fc, uint16_t address, uint16_t length)
             uint8_t value = slave.readRegisterFromBuffer(i);
 
             // Check if the value is 0 (INPUT) or 1 (OUTPUT).
-            if (value != INPUT || value != OUTPUT)
+            if (value != INPUT && value != OUTPUT)
             {
                 return STATUS_ILLEGAL_DATA_VALUE;
             }
