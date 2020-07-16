@@ -698,6 +698,12 @@ uint8_t Modbus::createResponse()
     switch (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX])
     {
     case FC_READ_EXCEPTION_STATUS:
+        // Reject broadcast read requests
+        if (requestUnitAddress == MODBUS_BROADCAST_ADDRESS)
+        {
+            return STATUS_ILLEGAL_FUNCTION;
+        }
+
         // Add the length of the response data to the length of the output.
         _responseBufferLength += 1;
 
@@ -706,6 +712,12 @@ uint8_t Modbus::createResponse()
 
     case FC_READ_COILS:          // Read coils (digital out state).
     case FC_READ_DISCRETE_INPUT: // Read input state (digital in).
+        // Reject broadcast read requests
+        if (requestUnitAddress == MODBUS_BROADCAST_ADDRESS)
+        {
+            return STATUS_ILLEGAL_FUNCTION;
+        }
+
         // Read the first address and the number of inputs.
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
         addressesLength = readUInt16(_requestBuffer, MODBUS_DATA_INDEX + 2);
@@ -720,6 +732,12 @@ uint8_t Modbus::createResponse()
 
     case FC_READ_HOLDING_REGISTERS: // Read holding registers (analog out state)
     case FC_READ_INPUT_REGISTERS:   // Read input registers (analog in)
+        // Reject broadcast read requests
+        if (requestUnitAddress == MODBUS_BROADCAST_ADDRESS)
+        {
+            return STATUS_ILLEGAL_FUNCTION;
+        }
+
         // Read the first address and the number of inputs.
         firstAddress = readUInt16(_requestBuffer, MODBUS_DATA_INDEX);
         addressesLength = readUInt16(_requestBuffer, MODBUS_DATA_INDEX + 2);
@@ -794,15 +812,24 @@ uint8_t Modbus::createResponse()
  */
 uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uint16_t address, uint16_t length)
 {
+    bool isBroadcast = slaveAddress == MODBUS_BROADCAST_ADDRESS;
+
     // Search for the correct slave to execute callback on.
     for (uint8_t i = 0; i < _numberOfSlaves; ++i)
     {
-        if (_slaves[i].getUnitAddress() == slaveAddress)
+        ModbusCallback callback = _slaves[i].cbVector[callbackIndex];
+        if (isBroadcast)
         {
-            // If the callback exist execute it, otherwise return that this is an illegal function.
-            if (_slaves[i].cbVector[callbackIndex])
+            if (callback)
             {
-                return _slaves[i].cbVector[callbackIndex](Modbus::readFunctionCode(), address, length);
+                callback(Modbus::readFunctionCode(), address, length);
+            }
+        }
+        else if (_slaves[i].getUnitAddress() == slaveAddress)
+        {
+            if (callback)
+            {
+                return callback(Modbus::readFunctionCode(), address, length);
             }
             else
             {
@@ -810,7 +837,8 @@ uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uin
             }
         }
     }
-    return STATUS_ILLEGAL_FUNCTION;
+
+    return isBroadcast ? STATUS_ACKNOWLEDGE : STATUS_ILLEGAL_FUNCTION;
 }
 
 /**
