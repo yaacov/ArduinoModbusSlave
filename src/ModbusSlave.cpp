@@ -589,7 +589,7 @@ bool Modbus::readRequest()
 bool Modbus::relevantAddress(uint8_t unitAddress)
 {
     // Every device should listen to broadcast messages.
-    if (isBroadcast())
+    if (unitAddress==MODBUS_BROADCAST_ADDRESS)
     {
         return true;
     }
@@ -838,7 +838,7 @@ uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uin
         }
     }
 
-    return isBroadcast ? STATUS_ACKNOWLEDGE : STATUS_ILLEGAL_FUNCTION;
+    return isBroadcast ? STATUS_OK : STATUS_ILLEGAL_FUNCTION;
 }
 
 /**
