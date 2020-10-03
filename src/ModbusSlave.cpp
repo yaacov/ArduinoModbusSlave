@@ -614,7 +614,16 @@ bool Modbus::relevantAddress(uint8_t unitAddress)
  */
 bool Modbus::validateRequest()
 {
+<<<<<<< HEAD
     
+=======
+    // Check the crc, and if it isn't correct ignore the request.
+    uint16_t crc = readCRC(_requestBuffer, _requestBufferLength);
+    if (Modbus::calculateCRC(_requestBuffer, _requestBufferLength - MODBUS_CRC_LENGTH) != crc)
+    {
+        return false;
+    }
+>>>>>>> 4c1cb6baf5588aeb75a5a3a3694b1f916c33729b
     // Check that the message was addressed to us
     if (!Modbus::relevantAddress(_requestBuffer[MODBUS_ADDRESS_INDEX]))
     {
@@ -627,6 +636,7 @@ bool Modbus::validateRequest()
     // Check the validity of the data based on the function code.
     switch (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX])
     {
+<<<<<<< HEAD
         case FC_READ_EXCEPTION_STATUS:
             // Broadcast is not supported, so ignore this request.
             if (_requestBuffer[MODBUS_ADDRESS_INDEX] == MODBUS_BROADCAST_ADDRESS)
@@ -664,6 +674,45 @@ bool Modbus::validateRequest()
                 expected_requestBufferSize += _requestBuffer[6];
             }
             break;
+=======
+    case FC_READ_EXCEPTION_STATUS:
+        // Broadcast is not supported, so ignore this request.
+        if (_requestBuffer[MODBUS_ADDRESS_INDEX] == MODBUS_BROADCAST_ADDRESS)
+        {
+            return false;
+        }
+        break;
+
+    case FC_READ_COILS:             // Read coils (digital read).
+    case FC_READ_DISCRETE_INPUT:    // Read input state (digital read).
+    case FC_READ_HOLDING_REGISTERS: // Read holding registers (analog read).
+    case FC_READ_INPUT_REGISTERS:   // Read input registers (analog read).
+        // Broadcast is not supported, so ignore this request.
+        if (_requestBuffer[MODBUS_ADDRESS_INDEX] == MODBUS_BROADCAST_ADDRESS)
+        {
+            return false;
+        }
+        // Add bytes to expected request size (2 x Index, 2 x Count).
+        expected_requestBufferSize += 4;
+        break;
+
+    case FC_WRITE_COIL:     // Write coils (digital write).
+    case FC_WRITE_REGISTER: // Write regosters (digital write).
+        // Add bytes to expected request size (2 x Index, 2 x Count).
+        expected_requestBufferSize += 4;
+        break;
+
+    case FC_WRITE_MULTIPLE_COILS:
+    case FC_WRITE_MULTIPLE_REGISTERS:
+        // Add bytes to expected request size (2 x Index, 2 x Count, 1 x Bytes).
+        expected_requestBufferSize += 5;
+        if (_requestBufferLength >= expected_requestBufferSize)
+        {
+            // Add bytes to expected request size (n x Bytes).
+            expected_requestBufferSize += _requestBuffer[6];
+        }
+        break;
+>>>>>>> 4c1cb6baf5588aeb75a5a3a3694b1f916c33729b
 
         default:
             // Unknown function code.
@@ -676,6 +725,7 @@ bool Modbus::validateRequest()
         return false;
     }
 
+<<<<<<< HEAD
     // Check the crc, and if it isn't correct ignore the request.
     uint16_t crc = readCRC(_requestBuffer, _requestBufferLength);
     if (Modbus::calculateCRC(_requestBuffer, _requestBufferLength - MODBUS_CRC_LENGTH) != crc)
@@ -693,6 +743,11 @@ bool Modbus::validateRequest()
     // Set the length to be read from the request to the calculated expected length.
     _requestBufferLength = expected_requestBufferSize;
     
+=======
+    // Set the length to be read from the request to the calculated expected length.
+    _requestBufferLength = expected_requestBufferSize;
+
+>>>>>>> 4c1cb6baf5588aeb75a5a3a3694b1f916c33729b
     return true;
 }
 
