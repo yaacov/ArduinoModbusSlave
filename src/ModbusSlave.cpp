@@ -842,6 +842,7 @@ uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uin
     }
     // No return in loop for a Broadcast thus return here without error if it's a Broadcast!
     return slaveAddress == MODBUS_BROADCAST_ADDRESS ? STATUS_ACKNOWLEDGE : STATUS_ILLEGAL_FUNCTION;
+
 }
 
 /**
