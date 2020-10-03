@@ -588,8 +588,9 @@ bool Modbus::readRequest()
  */
 bool Modbus::relevantAddress(uint8_t unitAddress)
 {
-    // Every device should listen to broadcast messages.
-    if (unitAddress==MODBUS_BROADCAST_ADDRESS)
+    // Every device should listen to broadcast messages, 
+    // keep the check it local, since we provide the unitAddress
+    if (unitAddress == MODBUS_BROADCAST_ADDRESS)
     {
         return true;
     }
@@ -613,6 +614,17 @@ bool Modbus::relevantAddress(uint8_t unitAddress)
  */
 bool Modbus::validateRequest()
 {
+    // Check the crc, and if it isn't correct ignore the request.
+    uint16_t crc = readCRC(_requestBuffer, _requestBufferLength);
+    if (Modbus::calculateCRC(_requestBuffer, _requestBufferLength - MODBUS_CRC_LENGTH) != crc)
+    {
+        return false;
+    }
+    // Check that the message was addressed to us
+    if (!Modbus::relevantAddress(_requestBuffer[MODBUS_ADDRESS_INDEX]))
+    {
+        return false;
+    }
     // The minimum buffer size (1 x Address, 1 x Function, n x Data, 2 x CRC).
     uint16_t expected_requestBufferSize = MODBUS_FRAME_SIZE;
 
@@ -621,7 +633,7 @@ bool Modbus::validateRequest()
     {
     case FC_READ_EXCEPTION_STATUS:
         // Broadcast is not supported, so ignore this request.
-        if (isBroadcast())
+        if (_requestBuffer[MODBUS_ADDRESS_INDEX] == MODBUS_BROADCAST_ADDRESS)
         {
             return false;
         }
@@ -632,7 +644,7 @@ bool Modbus::validateRequest()
     case FC_READ_HOLDING_REGISTERS: // Read holding registers (analog read).
     case FC_READ_INPUT_REGISTERS:   // Read input registers (analog read).
         // Broadcast is not supported, so ignore this request.
-        if (isBroadcast())
+        if (_requestBuffer[MODBUS_ADDRESS_INDEX] == MODBUS_BROADCAST_ADDRESS)
         {
             return false;
         }
@@ -671,13 +683,6 @@ bool Modbus::validateRequest()
 
     // Set the length to be read from the request to the calculated expected length.
     _requestBufferLength = expected_requestBufferSize;
-
-    // Check the crc, and if it isn't correct ignore the request.
-    uint16_t crc = readCRC(_requestBuffer, _requestBufferLength);
-    if (Modbus::calculateCRC(_requestBuffer, _requestBufferLength - MODBUS_CRC_LENGTH) != crc)
-    {
-        return false;
-    }
 
     return true;
 }
@@ -812,13 +817,11 @@ uint8_t Modbus::createResponse()
  */
 uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uint16_t address, uint16_t length)
 {
-    bool isBroadcast = slaveAddress == MODBUS_BROADCAST_ADDRESS;
-
     // Search for the correct slave to execute callback on.
     for (uint8_t i = 0; i < _numberOfSlaves; ++i)
     {
         ModbusCallback callback = _slaves[i].cbVector[callbackIndex];
-        if (isBroadcast)
+        if (slaveAddress == MODBUS_BROADCAST_ADDRESS)
         {
             if (callback)
             {
@@ -837,8 +840,9 @@ uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uin
             }
         }
     }
+    // No return in loop for a Broadcast thus return here without error if it's a Broadcast!
+    return slaveAddress == MODBUS_BROADCAST_ADDRESS ? STATUS_ACKNOWLEDGE : STATUS_ILLEGAL_FUNCTION;
 
-    return isBroadcast ? STATUS_OK : STATUS_ILLEGAL_FUNCTION;
 }
 
 /**
