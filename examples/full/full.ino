@@ -132,7 +132,7 @@ uint8_t readMemory(uint8_t fc, uint16_t address, uint16_t length)
             uint16_t value;
 
             // Read a value from the EEPROM.
-            EEPROM.get((address + i) * 2, value);
+            EEPROM.get(address + (i * 2), value);
 
             // Write the value from EEPROM to the response buffer.
             slave.writeRegisterToBuffer(i, value);
@@ -215,7 +215,7 @@ uint8_t writeMemory(uint8_t fc, uint16_t address, uint16_t length)
             uint16_t value = slave.readRegisterFromBuffer(i);
 
             // Store the received value in the EEPROM.
-            EEPROM.put(address + i * 2, value);
+            EEPROM.put(address + (i * 2), value);
         }
     }
 
