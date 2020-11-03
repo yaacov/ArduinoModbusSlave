@@ -136,10 +136,10 @@ private:
 
   Stream &_serialStream;
 
-#if defined ARDUINO_ARCH_AVR || defined AVR_NANO_EVERY || defined AVR_UNO_WIFI_REV2
-  int _serialTransmissionBufferLength = SERIAL_BUFFER_SIZE;
-#else
+#if defined(SERIAL_TX_BUFFER_SIZE)
   int _serialTransmissionBufferLength = SERIAL_TX_BUFFER_SIZE;
+#else
+  int _serialTransmissionBufferLength = SERIAL_BUFFER_SIZE;
 #endif
 
   int _transmissionControlPin = MODBUS_CONTROL_PIN_NONE;
