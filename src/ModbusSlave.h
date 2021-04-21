@@ -104,6 +104,8 @@ public:
 
   void begin(uint64_t boudRate);
   void setUnitAddress(uint8_t unitAddress);
+  void enable();
+  void disable();
   uint8_t poll();
 
   bool readCoilFromBuffer(int offset);
@@ -116,6 +118,7 @@ public:
 
   uint8_t readFunctionCode();
   uint8_t readUnitAddress();
+  bool readEnabled();
   bool isBroadcast();
 
   uint64_t getTotalBytesSent();
@@ -133,6 +136,8 @@ public:
 private:
   ModbusSlave *_slaves = new ModbusSlave();
   uint8_t _numberOfSlaves = 1;
+
+  bool _enabled = true;
 
   Stream &_serialStream;
 
