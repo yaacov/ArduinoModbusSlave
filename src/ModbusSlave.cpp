@@ -152,6 +152,32 @@ void Modbus::setUnitAddress(uint8_t unitAddress)
 }
 
 /**
+ * Enables communication.
+ */
+void Modbus::enable()
+{
+    _enabled = true;
+} 
+
+/**
+ * Disable communication.
+ */
+void Modbus::disable()
+{
+    _enabled = false;
+}
+
+/**
+ * Gets the enable status.
+ * 
+ * @return The enable state.
+ */
+bool Modbus::readEnabled()
+{
+    return _enabled;
+}
+
+/**
  * Gets the total number of bytes sent.
  *
  * @return The number of bytes.
@@ -232,6 +258,12 @@ uint8_t Modbus::poll()
     _responseBuffer[MODBUS_ADDRESS_INDEX] = _requestBuffer[MODBUS_ADDRESS_INDEX];
     _responseBuffer[MODBUS_FUNCTION_CODE_INDEX] = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX];
     _responseBufferLength = MODBUS_FRAME_SIZE;
+
+    // If communication is not enabled, skip processing
+    if (!_enabled)
+    {
+        return 0;
+    }
 
     // Validate the incoming request.
     if (!Modbus::validateRequest())
