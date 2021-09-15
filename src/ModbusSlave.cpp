@@ -157,7 +157,7 @@ void Modbus::setUnitAddress(uint8_t unitAddress)
 void Modbus::enable()
 {
     _enabled = true;
-} 
+}
 
 /**
  * Disable communication.
@@ -169,7 +169,7 @@ void Modbus::disable()
 
 /**
  * Gets the enable status.
- * 
+ *
  * @return The enable state.
  */
 bool Modbus::readEnabled()
@@ -313,7 +313,7 @@ uint8_t Modbus::readUnitAddress()
 }
 
 /**
- * Returns a boolean value indicating if the request currently being processed 
+ * Returns a boolean value indicating if the request currently being processed
  * is a broadcast message and therefore does not need a response.
  *
  * @return True if the current request message is a broadcase message; otherwise false.
@@ -388,7 +388,7 @@ uint16_t Modbus::readRegisterFromBuffer(int offset)
 /**
  * Writes the exception status to the buffer.
  *
- * @param offset 
+ * @param offset
  * @param status Exception status flag (true / false)
  */
 uint8_t Modbus::writeExceptionStatusToBuffer(int offset, bool status)
@@ -573,7 +573,8 @@ bool Modbus::readRequest()
             }
 
             // Check if there is enough room for the incoming bytes in the buffer.
-            length = min(length, MODBUS_MAX_BUFFER - _requestBufferLength);
+            uint16_t m_length =  MODBUS_MAX_BUFFER - _requestBufferLength;
+            length = min(length, m_length);
             // Read the data from the serial stream into the buffer.
             length = _serialStream.readBytes(_requestBuffer + _requestBufferLength, MODBUS_MAX_BUFFER - _requestBufferLength);
 
@@ -620,7 +621,7 @@ bool Modbus::readRequest()
  */
 bool Modbus::relevantAddress(uint8_t unitAddress)
 {
-    // Every device should listen to broadcast messages, 
+    // Every device should listen to broadcast messages,
     // keep the check it local, since we provide the unitAddress
     if (unitAddress == MODBUS_BROADCAST_ADDRESS)
     {
@@ -646,7 +647,7 @@ bool Modbus::relevantAddress(uint8_t unitAddress)
  */
 bool Modbus::validateRequest()
 {
-    
+
     // Check that the message was addressed to us
     if (!Modbus::relevantAddress(_requestBuffer[MODBUS_ADDRESS_INDEX]))
     {
@@ -655,7 +656,7 @@ bool Modbus::validateRequest()
     // The minimum buffer size (1 x Address, 1 x Function, n x Data, 2 x CRC).
     uint16_t expected_requestBufferSize = MODBUS_FRAME_SIZE;
     bool report_illegal_function=false;
-    
+
     // Check the validity of the data based on the function code.
     switch (_requestBuffer[MODBUS_FUNCTION_CODE_INDEX])
     {
@@ -714,17 +715,17 @@ bool Modbus::validateRequest()
     {
         return false;
     }
-    
+
     // report_illegal_function after the CRC check, cheaper
     if (report_illegal_function)
     {
         Modbus::reportException(STATUS_ILLEGAL_FUNCTION);
         return false;
     }
-    
+
     // Set the length to be read from the request to the calculated expected length.
     _requestBufferLength = expected_requestBufferSize;
-    
+
     return true;
 }
 

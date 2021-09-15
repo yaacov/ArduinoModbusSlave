@@ -24,6 +24,10 @@
 #define MODBUS_DEFAULT_UNIT_ADDRESS 1
 #define MODBUS_CONTROL_PIN_NONE -1
 
+#if defined (ESP32) || defined (ESP8266)
+  #define SERIAL_BUFFER_SIZE 128
+#endif
+
 /**
  * Modbus function codes
  */
@@ -141,7 +145,7 @@ private:
 
   Stream &_serialStream;
 
-#if defined(SERIAL_TX_BUFFER_SIZE)
+#if defined(SERIAL_TX_BUFFER_SIZE) && !defined (ESP32) && !defined (ESP8266)
   int _serialTransmissionBufferLength = SERIAL_TX_BUFFER_SIZE;
 #else
   int _serialTransmissionBufferLength = SERIAL_BUFFER_SIZE;
