@@ -1036,6 +1036,9 @@ uint16_t Modbus::reportException(uint8_t exceptionCode)
  *
  * @return The calculated CRC as an unsigned 16 bit integer.
  */
+ 
+#ifndef CRC_LTABLE_CALC
+
 uint16_t Modbus::calculateCRC(uint8_t *buffer, int length)
 {
     int i, j;
@@ -1057,6 +1060,23 @@ uint16_t Modbus::calculateCRC(uint8_t *buffer, int length)
             }
         }
     }
-
     return crc;
 }
+
+#else
+
+// CRC over LookUp Table
+inline uint16_t Modbus::calculateCRC(uint8_t *buffer, int length)
+{
+    uint16_t crc = 0xFFFF;
+    uint8_t tmp;
+
+    while (length--)
+    {
+        tmp = (*buffer++ ^ crc) & 0xFF;
+        crc = (crc >> 8) ^ pgm_read_word(wCRCTable + tmp);
+    }
+    return crc;
+}
+
+#endif
