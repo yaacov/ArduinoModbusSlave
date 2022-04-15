@@ -25,7 +25,7 @@
 #define MODBUS_CONTROL_PIN_NONE -1
 
 #if defined (ESP32) || defined (ESP8266)
-  #define SERIAL_BUFFER_SIZE 128
+  #define SERIAL_BUFFER_SIZE 256
 #endif
 
 /**
