@@ -253,12 +253,6 @@ uint8_t Modbus::poll()
         return 0;
     }
 
-    // Prepare the output buffer.
-    memset(_responseBuffer, 0, MODBUS_MAX_BUFFER);
-    _responseBuffer[MODBUS_ADDRESS_INDEX] = _requestBuffer[MODBUS_ADDRESS_INDEX];
-    _responseBuffer[MODBUS_FUNCTION_CODE_INDEX] = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX];
-    _responseBufferLength = MODBUS_FRAME_SIZE;
-
     // If communication is not enabled, skip processing
     if (!_enabled)
     {
@@ -716,6 +710,12 @@ bool Modbus::validateRequest()
         return false;
     }
 
+    // Prepare the output buffer.
+    memset(_responseBuffer, 0, MODBUS_MAX_BUFFER);
+    _responseBuffer[MODBUS_ADDRESS_INDEX] = _requestBuffer[MODBUS_ADDRESS_INDEX];
+    _responseBuffer[MODBUS_FUNCTION_CODE_INDEX] = _requestBuffer[MODBUS_FUNCTION_CODE_INDEX];
+    _responseBufferLength = MODBUS_FRAME_SIZE;
+
     // report_illegal_function after the CRC check, cheaper
     if (report_illegal_function)
     {
@@ -1036,7 +1036,7 @@ uint16_t Modbus::reportException(uint8_t exceptionCode)
  *
  * @return The calculated CRC as an unsigned 16 bit integer.
  */
- 
+
 #ifndef CRC_LTABLE_CALC
 
 uint16_t Modbus::calculateCRC(uint8_t *buffer, int length)
