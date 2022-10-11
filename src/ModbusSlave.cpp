@@ -867,14 +867,14 @@ uint8_t Modbus::executeCallback(uint8_t slaveAddress, uint8_t callbackIndex, uin
         {
             if (callback)
             {
-                callback(Modbus::readFunctionCode(), address, length);
+                callback(Modbus::readFunctionCode(), address, length,_pModbusCallbackContext);
             }
         }
         else if (_slaves[i].getUnitAddress() == slaveAddress)
         {
             if (callback)
             {
-                return callback(Modbus::readFunctionCode(), address, length);
+                return callback(Modbus::readFunctionCode(), address, length,_pModbusCallbackContext);
             }
             else
             {
@@ -1027,6 +1027,14 @@ uint16_t Modbus::reportException(uint8_t exceptionCode)
 
     return Modbus::writeResponse();
 }
+
+
+
+void Modbus::setCallbackContext(void* pModbusCallbackContext) noexcept
+{
+    _pModbusCallbackContext = pModbusCallbackContext;
+}
+
 
 /**
  * Calculate the CRC of the passed byte array from zero up to the passed length.

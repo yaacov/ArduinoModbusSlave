@@ -119,7 +119,7 @@ enum
   STATUS_GATEWAY_TARGET_DEVICE_FAILED_TO_RESPOND,
 };
 
-typedef uint8_t (*ModbusCallback)(uint8_t, uint16_t, uint16_t);
+using ModbusCallback = uint8_t (*)(uint8_t, uint16_t, uint16_t, void*);
 
 /**
  * @class ModbusSlave
@@ -169,6 +169,8 @@ public:
   uint64_t getTotalBytesSent();
   uint64_t getTotalBytesReceived();
 
+  void setCallbackContext(void* pModbusCallbackContext) noexcept;
+
   // This cbVector is a pointer to cbVector of the first slave, to allow shorthand syntax:
   //     Modbus slave(SLAVE_ID, CTRL_PIN);
   //     slave.cbVector[CB_WRITE_COILS] = writeDigitalOut;
@@ -208,6 +210,8 @@ private:
 
   uint64_t _totalBytesSent = 0;
   uint64_t _totalBytesReceived = 0;
+
+  void* _pModbusCallbackContext = nullptr;
 
   bool relevantAddress(uint8_t unitAddress);
   bool readRequest();
