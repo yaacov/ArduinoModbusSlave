@@ -69,7 +69,7 @@ void loop()
 //     uint16_t length/status - length of data / coil status
 
 // Handle the function code Read Holding Registers (FC=03).
-uint8_t readMemorySlave1(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t readMemorySlave1(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array.
     if (address > memory_slave1_size || (address + length) > memory_slave1_size)
@@ -88,7 +88,7 @@ uint8_t readMemorySlave1(uint8_t fc, uint16_t address, uint16_t length)
 }
 
 // Handle the function codes Write Holding Register(s) (FC=06, FC=16)
-uint8_t writeMemorySlave1(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t writeMemorySlave1(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array
     if (address > memory_slave1_size || (address + length) > memory_slave1_size)
@@ -107,7 +107,7 @@ uint8_t writeMemorySlave1(uint8_t fc, uint16_t address, uint16_t length)
 }
 
 // Handle the function code Read Holding Registers (FC=03).
-uint8_t readMemorySlave2(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t readMemorySlave2(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array.
     if (address > memory_slave2_size || (address + length) > memory_slave2_size)
@@ -126,7 +126,7 @@ uint8_t readMemorySlave2(uint8_t fc, uint16_t address, uint16_t length)
 }
 
 // Handle the function codes Write Holding Register(s) (FC=06, FC=16)
-uint8_t writeMemorySlave2(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t writeMemorySlave2(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array
     if (address > memory_slave2_size || (address + length) > memory_slave2_size)
