@@ -104,6 +104,8 @@ Modbus::Modbus(Stream &serialStream, uint8_t unitAddress, int transmissionContro
     // Set modbus slave unit id.
     _slaves[0].setUnitAddress(unitAddress);
     cbVector = _slaves[0].cbVector;
+	for(int v = 0; v < CB_MAX; v++)
+		cbVector[v] = NULL;
 
     // Set transmission control pin for RS485 communication.
     _transmissionControlPin = transmissionControlPin;
@@ -136,7 +138,10 @@ Modbus::Modbus(Stream &serialStream, ModbusSlave *slaves, uint8_t numberOfSlaves
     _slaves = slaves;
     _numberOfSlaves = numberOfSlaves;
     cbVector = _slaves[0].cbVector;
-
+	for(int s = 0; s < numberOfSlaves ; s++)
+		for(int v = 0; v < CB_MAX; v++)
+			_slaves[s].cbVector[v] = NULL;
+		 
     // Set transmission control pin for RS485 communication.
     _transmissionControlPin = transmissionControlPin;
 }
