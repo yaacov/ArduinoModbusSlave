@@ -144,8 +144,8 @@ class Modbus
 public:
   Modbus(uint8_t unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
   Modbus(ModbusSlave *slaves, uint8_t numberOfSlaves, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
-  Modbus(Stream &serialStream, uint8_t unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
-  Modbus(Stream &serialStream, ModbusSlave *slaves, uint8_t numberOfSlaves, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
+  Modbus(UARTClass &serialStream, uint8_t unitAddress = MODBUS_DEFAULT_UNIT_ADDRESS, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
+  Modbus(UARTClass &serialStream, ModbusSlave *slaves, uint8_t numberOfSlaves, int transmissionControlPin = MODBUS_CONTROL_PIN_NONE);
 
   void begin(uint64_t boudRate);
   void setUnitAddress(uint8_t unitAddress);
@@ -186,7 +186,7 @@ private:
 
   bool _enabled = true;
 
-  Stream &_serialStream;
+  UARTClass &_serialStream;
 
 #if defined(SERIAL_TX_BUFFER_SIZE) && !defined (ESP32) && !defined (ESP8266)
   int _serialTransmissionBufferLength = SERIAL_TX_BUFFER_SIZE;
