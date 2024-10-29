@@ -98,8 +98,13 @@ Modbus::Modbus(uint8_t unitAddress, int transmissionControlPin)
  * @param unitAddress The modbus slave unit address.
  * @param transmissionControlPin The digital out pin to be used for RS485 transmission control.
  */
+#if defined(ARDUINO_SAM_DUE)
 Modbus::Modbus(UARTClass &serialStream, uint8_t unitAddress, int transmissionControlPin)
     : _serialStream(serialStream)
+#else
+Modbus::Modbus(Stream &serialStream, uint8_t unitAddress, int transmissionControlPin)
+    : _serialStream(serialStream)
+#endif
 {
     // Set modbus slave unit id.
     _slaves[0].setUnitAddress(unitAddress);
@@ -129,8 +134,13 @@ Modbus::Modbus(ModbusSlave *slaves, uint8_t numberOfSlaves, int transmissionCont
  * @param numberOfSlaves The number of ModbusSlaves in the array.
  * @param transmissionControlPin The digital out pin to be used for RS485 transmission control.
  */
+#if defined(ARDUINO_SAM_DUE)
 Modbus::Modbus(UARTClass &serialStream, ModbusSlave *slaves, uint8_t numberOfSlaves, int transmissionControlPin)
     : _serialStream(serialStream)
+#else
+Modbus::Modbus(Stream &serialStream, ModbusSlave *slaves, uint8_t numberOfSlaves, int transmissionControlPin)
+    : _serialStream(serialStream)
+#endif
 {
     // Set the modbus slaves.
     _slaves = slaves;
