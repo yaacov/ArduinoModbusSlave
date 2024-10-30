@@ -92,7 +92,7 @@ void loop()
 //     uint16_t length/status - length of data / coil status
 
 // Handle the function codes Read Input Status (FC=01/02) and write back the values from the digital pins (input status).
-uint8_t readDigital(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t readDigital(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array
     if (address > digital_pins_size || (address + length) > digital_pins_size)
@@ -111,7 +111,7 @@ uint8_t readDigital(uint8_t fc, uint16_t address, uint16_t length)
 }
 
 // Handle the function code Read Holding Registers (FC=03) and write back the values from the EEPROM (holding registers).
-uint8_t readMemory(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t readMemory(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Read the requested EEPROM registers.
     for (int i = 0; i < length; i++)
@@ -143,7 +143,7 @@ uint8_t readMemory(uint8_t fc, uint16_t address, uint16_t length)
 }
 
 // Handle the function code Read Input Registers (FC=04) and write back the values from the analog input pins (input registers).
-uint8_t readAnalogIn(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t readAnalogIn(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array
     if (address > analog_pins_size || (address + length) > analog_pins_size)
@@ -162,7 +162,7 @@ uint8_t readAnalogIn(uint8_t fc, uint16_t address, uint16_t length)
 }
 
 // Handle the function codes Force Single Coil (FC=05) and Force Multiple Coils (FC=15) and set the digital output pins (coils).
-uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array
     if (address > digital_pins_size || (address + length) > digital_pins_size)
@@ -181,7 +181,7 @@ uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length)
 }
 
 // Handle the function codes Write Holding Register(s) (FC=06, FC=16) and write data to the eeprom.
-uint8_t writeMemory(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t writeMemory(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Write the received data to EEPROM.
     for (int i = 0; i < length; i++)

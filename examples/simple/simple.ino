@@ -98,7 +98,7 @@ void loop()
 //     uint16_t length/status - length of data / coil status
 
 // Handle the function codes Force Single Coil (FC=05) and Force Multiple Coils (FC=15) and set the corresponding digital output pins (coils).
-uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array
     if (address > output_pins_size || (address + length) > output_pins_size)
@@ -117,7 +117,7 @@ uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length)
 }
 
 // Handle the function code Read Input Status (FC=02) and write back the values from the digital input pins (discreet input).
-uint8_t readDigitalIn(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t readDigitalIn(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array
     if (address > input_pins_size || (address + length) > input_pins_size)
@@ -136,7 +136,7 @@ uint8_t readDigitalIn(uint8_t fc, uint16_t address, uint16_t length)
 }
 
 // Handle the function code Read Input Registers (FC=04) and write back the values from analog input pins (input registers).
-uint8_t readAnalogIn(uint8_t fc, uint16_t address, uint16_t length)
+uint8_t readAnalogIn(uint8_t fc, uint16_t address, uint16_t length, void *context)
 {
     // Check if the requested addresses exist in the array
     if (address > analog_pins_size || (address + length) > analog_pins_size)
