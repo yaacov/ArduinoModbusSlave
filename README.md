@@ -16,7 +16,7 @@ slave.cbVector[CB_READ_INPUT_REGISTERS] = ReadAnalogIn;
 Implement it:
 
 ```c
-void ReadAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
+void ReadAnalogIn(uint8_t fc, uint16_t address, uint16_t length, void *callbackContext) {
     for (int i = 0; i < length; i++)
         slave.writeRegisterToBuffer(i, analogRead(address + i));
 }
@@ -82,6 +82,7 @@ A handler functions must return an uint8_t code and take the following as parame
 - uint8_t fc - request function code
 - uint16_t address - first register / first coil address
 - uint16_t length - length of data
+- void *callbackContext - callback context
 
 Usable return codes:
 
@@ -152,7 +153,7 @@ void loop() {
 }
 
 // Handel Force Single Coil (FC=05).
-uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length) {
+uint8_t writeDigitalOut(uint8_t fc, uint16_t address, uint16_t length, void *callbackContext) {
     if (slave.readCoilFromBuffer(0) == HIGH)
     {
         digitalWrite(address, HIGH);
@@ -194,7 +195,7 @@ void loop() {
 }
 
 // Handle Read Input Registers (FC=04).
-uint8_t readAnalogIn(uint8_t fc, uint16_t address, uint16_t length) {
+uint8_t readAnalogIn(uint8_t fc, uint16_t address, uint16_t length, void *callbackContext) {
     // Write the result of analogRead() into the response buffer.
     for (int i = 0; i < length; i++) {
       slave.writeRegisterToBuffer(i, analogRead(address + i));
