@@ -44,10 +44,10 @@ Modbus modbus(SERIAL_PORT, slaves, NUMBER_OF_SLAVES);
 void setup()
 {
     // Register functions to call when a certain function code is received.
-    slaves[0].cbVector[CB_READ_HOLDING_REGISTERS] = readMemorySlave1;
-    slaves[0].cbVector[CB_WRITE_HOLDING_REGISTERS] = writeMemorySlave1;
-    slaves[1].cbVector[CB_READ_HOLDING_REGISTERS] = readMemorySlave2;
-    slaves[1].cbVector[CB_WRITE_HOLDING_REGISTERS] = writeMemorySlave2;
+    slaves[0].cbVector[FC_READ_HOLDING_REGISTERS] = readMemorySlave1;
+    slaves[0].cbVector[FC_WRITE_MULTIPLE_REGISTERS] = writeMemorySlave1;
+    slaves[1].cbVector[FC_READ_HOLDING_REGISTERS] = readMemorySlave2;
+    slaves[1].cbVector[FC_WRITE_MULTIPLE_REGISTERS] = writeMemorySlave2;
 
     // Set the serial port and slave to the given baudrate.
     SERIAL_PORT.begin(SERIAL_BAUDRATE);
